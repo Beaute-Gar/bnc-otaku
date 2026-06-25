@@ -1,0 +1,67 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # --- Gemini ---
+    gemini_api_key: str = ""
+
+    # --- MySQL ---
+    db_host: str = "localhost"
+    db_port: int = 3306
+    db_user: str = "bnc_otaku_user"
+    db_password: str = ""
+    db_name: str = "bnc_otaku_db"
+
+    @property
+    def database_url(self) -> str:
+        return f"mysql+aiomysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
+
+    # --- API Security ---
+    api_secret_key: str = "change-me-pls"
+    api_rate_limit: str = "100/minute"
+    csrf_secret: str = "change-me-csrf"
+
+    # --- Telegram ---
+    telegram_bot_token: str = ""
+    telegram_webhook_url: str = ""
+
+    # --- Meta / WhatsApp Business ---
+    meta_access_token: str = ""
+    meta_phone_number_id: str = ""
+    meta_webhook_verify_token: str = ""
+    meta_webhook_url: str = ""
+
+    # --- WhatsApp Playwright ---
+    whatsapp_session_dir: str = "./wa_sessions"
+    whatsapp_headless: bool = False
+
+    # --- Admin ---
+    admin_username: str = "admin"
+    admin_password_hash: str = ""
+    admin_email: str = "admin@bnc-otaku.cm"
+
+    # --- CinetPay (Mobile Money) ---
+    cinetpay_api_key: str = ""
+    cinetpay_site_id: str = ""
+
+    # --- NotchPay (alternative) ---
+    notchpay_public_key: str = ""
+
+    # --- Frontend ---
+    frontend_url: str = "http://localhost:8000"
+    cors_origins: str = "http://localhost:8000,http://localhost:5500"
+
+    @property
+    def cors_origin_list(self) -> List[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+settings = Settings()

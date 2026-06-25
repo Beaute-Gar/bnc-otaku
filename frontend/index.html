@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNC-Otaku — Bureau National de Certification Otaku</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ====== HEADER GOUVERNEMENTAL ====== -->
+  <header class="gov-header">
+    <div class="gov-header__emblem">
+      <span class="emblem-text">RÉPUBLIQUE OTAKU</span>
+      <span class="emblem-sub">Liberté · Culture · Passion</span>
+    </div>
+    <nav class="gov-nav">
+      <a href="index.html" class="active">Accueil</a>
+      <a href="quiz.html">Examen</a>
+      <a href="#verification">Vérifier un diplôme</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- ====== HERO SECTION ====== -->
+  <section class="hero">
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <h1 class="hero__title">BUREAU NATIONAL DE<br>CERTIFICATION OTAKU</h1>
+      <p class="hero__subtitle">L'autorité suprême de certification des connaissances en culture anime & manga</p>
+      <div class="hero__actions">
+        <a href="#" onclick="if(requireAuth())window.location='quiz.html';return false;" class="btn btn--primary">✧ Passer l'Examen ✧</a>
+        <a href="#verification" class="btn btn--secondary">Vérifier un Diplôme</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== STATS ====== -->
+  <section class="stats">
+    <div class="stat">
+      <span class="stat__number" id="totalCertified">12 847</span>
+      <span class="stat__label">Diplômés</span>
+    </div>
+    <div class="stat">
+      <span class="stat__number">4</span>
+      <span class="stat__label">Niveaux</span>
+    </div>
+    <div class="stat">
+      <span class="stat__number">98.7%</span>
+      <span class="stat__label">Satisfaction</span>
+    </div>
+    <div class="stat">
+      <span class="stat__number">🏆</span>
+      <span class="stat__label">Certification Officielle</span>
+    </div>
+  </section>
+
+  <!-- ====== NIVEAUX ====== -->
+  <section class="levels">
+    <h2 class="section-title">Les 4 Niveaux de Certification</h2>
+    <div class="levels__grid">
+      <div class="level-card level-card--bronze">
+        <div class="level-card__rank">★</div>
+        <h3>Junior Otaku</h3>
+        <p>Le débutant passionné qui sait distinguer un Sharingan d'un Rinnegan.</p>
+        <span class="level-card__score">0-54%</span>
+      </div>
+      <div class="level-card level-card--silver">
+        <div class="level-card__rank">★★</div>
+        <h3>Senior Otaku</h3>
+        <p>Connaît les openings par cœur et a pleuré sur au moins 3 fins.</p>
+        <span class="level-card__score">55-74%</span>
+      </div>
+      <div class="level-card level-card--gold">
+        <div class="level-card__rank">★★★</div>
+        <h3>Master Otaku</h3>
+        <p>Capable de reconnaître un seiyuu à la première réplique.</p>
+        <span class="level-card__score">75-89%</span>
+      </div>
+      <div class="level-card level-card--legendary">
+        <div class="level-card__rank">★★★★</div>
+        <h3>Otaku Légendaire</h3>
+        <p>Son power level dépasse l'entendement. Les animés sont sa réalité.</p>
+        <span class="level-card__score">90-100%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== VÉRIFICATION ====== -->
+  <section id="verification" class="verification">
+    <h2 class="section-title">Vérifier un Diplôme</h2>
+    <p class="section-subtitle">Entrez le numéro du certificat (ex: BNC-2026-0001)</p>
+    <div class="verification__form">
+      <input type="text" id="certInput" placeholder="BNC-2026-XXXX" class="verification__input">
+      <button onclick="verifyCert()" class="btn btn--primary">Vérifier</button>
+    </div>
+    <div id="certResult" class="verification__result"></div>
+  </section>
+
+  <!-- ====== FOOTER ====== -->
+  <footer class="gov-footer">
+    <p>&copy; 2026 Bureau National de Certification Otaku — Tous droits otaku réservés</p>
+    <p class="gov-footer__disclaimer">Ce site est une parodie. Toute ressemblance avec une institution réelle est purement fortuite.</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/quiz.js"></script>
+  <script>
+    async function verifyCert() {
+      const num = document.getElementById('certInput').value.trim();
+      const result = document.getElementById('certResult');
+      if (!num) { result.innerHTML = '<p class="error">Veuillez entrer un numéro</p>'; return; }
+      try {
+        const res = await fetch(`/api/certificates/verify/${num}`);
+        const data = await res.json();
+        if (data.valid) {
+          result.innerHTML = `<div class="success">
+            <h3>✅ Certificat Valide</h3>
+            <p>Nom : ${data.full_name}</p>
+            <p>Niveau : ${data.level}</p>
+            <p>Score : ${data.score}%</p>
+            <p>Délivré le : ${data.issued_at}</p>
+          </div>`;
+        } else {
+          result.innerHTML = '<div class="error">❌ Certificat non trouvé ou invalide</div>';
+        }
+      } catch(e) {
+        result.innerHTML = '<div class="error">Erreur de vérification</div>';
+      }
+    }
+  </script>
+</body>
+</html>

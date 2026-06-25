@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium — BNC-Otaku</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/premium.css">
+</head>
+<body>
+  <header class="gov-header">
+    <div class="gov-header__emblem">
+      <span class="emblem-text">BNC-OTAKU · PREMIUM</span>
+      <span class="emblem-sub">Grade Supérieur — Paiement Mobile Money</span>
+    </div>
+    <nav class="gov-nav">
+      <a href="index.html">Accueil</a>
+      <a href="quiz.html">Examen</a>
+      <a href="premium.html" class="active">Premium</a>
+    </nav>
+  </header>
+
+  <main class="page-premium">
+    <h1>🏆 Deviens un Otaku Premium</h1>
+    <p class="subtitle">Débloque des fonctionnalités exclusives via MTN Mobile Money ou Orange Money</p>
+
+    <div id="productsGrid" class="products-grid">
+      <div style="text-align:center;grid-column:1/-1;padding:2rem;opacity:0.5;">Chargement...</div>
+    </div>
+
+    <div class="payment-history" id="paymentHistory">
+      <h2>📋 Mon historique</h2>
+      <table>
+        <thead>
+          <tr><th>Référence</th><th>Produit</th><th>Montant</th><th>Opérateur</th><th>Statut</th></tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="5" style="text-align:center;opacity:0.5;">Connecte-toi pour voir ton historique</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- MODAL PAIEMENT -->
+  <div id="paymentModal" class="payment-modal" style="display:none;">
+    <div class="payment-modal__card">
+      <div id="paymentForm">
+        <h2>💳 Paiement</h2>
+        <p id="modalProduct" style="color:white;font-weight:600;"></p>
+        <p id="modalPrice" style="font-size:1.5rem;color:#ffd700;margin:1rem 0;"></p>
+
+        <label style="color:rgba(255,255,255,0.7);font-size:0.9rem;">Choisis ton opérateur :</label>
+        <div class="operateur-select">
+          <button class="operateur-btn mtn" onclick="selectOperateur('MTN', this)">📱 MTN</button>
+          <button class="operateur-btn orange" onclick="selectOperateur('ORANGE', this)">📱 Orange</button>
+          <button class="operateur-btn wave" onclick="selectOperateur('WAVE', this)">🌊 Wave</button>
+        </div>
+
+        <input type="tel" id="phoneInput" class="phone-input"
+               placeholder="Numéro MTN/Orange (ex: 691234567)"
+               oninput="checkPayReady()">
+
+        <button id="payBtn" class="btn-pay" onclick="pay()" disabled>
+          💰 Payer maintenant
+        </button>
+      </div>
+
+      <div id="paymentLoading" style="display:none;">
+        <h2>⏳ Initiation du paiement...</h2>
+        <div class="spinner"></div>
+      </div>
+
+      <div id="paymentResult" style="display:none;">
+        <div id="resultIcon" class="check">✅</div>
+        <h2 id="resultTitle">Paiement en cours</h2>
+        <p id="resultMsg" style="color:rgba(255,255,255,0.7);"></p>
+        <button onclick="closeModal()" class="btn btn--secondary" style="margin-top:1rem;">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="gov-footer">
+    <p>&copy; 2026 BNC-Otaku — Paiement sécurisé via CinetPay</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/payment.js"></script>
+  <script>if (!requireAuth()) {}</script>
+</body>
+</html>

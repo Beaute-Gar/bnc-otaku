@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — BNC-Otaku</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-container {
+      max-width: 420px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+    }
+    .auth-card {
+      background: #0f3460;
+      padding: 2.5rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,215,0,0.3);
+    }
+    .auth-card h1 {
+      text-align: center;
+      color: #ffd700;
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      color: rgba(255,255,255,0.5);
+      font-weight: 600;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+    }
+    .auth-tab.active {
+      color: #ffd700;
+      border-bottom-color: #ffd700;
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .auth-form input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: #1a1a2e;
+      color: #fff;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    .auth-form input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+    .auth-form .btn { width: 100%; margin-top: 0.5rem; }
+    .auth-error {
+      color: #f44336;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .auth-success {
+      color: #4caf50;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .auth-extra {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    .auth-extra a {
+      color: #e94560;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .user-info {
+      text-align: center;
+      padding: 1rem;
+      display: none;
+    }
+    .user-info .avatar {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .user-info .name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+  <header class="gov-header">
+    <div class="gov-header__emblem">
+      <span class="emblem-text">BNC-OTAKU · COMPTE</span>
+      <span class="emblem-sub">Espace Candidat</span>
+    </div>
+    <nav class="gov-nav">
+      <a href="index.html">Accueil</a>
+      <a href="login.html" class="active">Connexion</a>
+      <a href="quiz.html">Examen</a>
+    </nav>
+  </header>
+
+  <main class="auth-container">
+    <!-- ====== DÉJÀ CONNECTÉ ====== -->
+    <div id="userInfo" class="auth-card user-info">
+      <div class="avatar">🎌</div>
+      <div class="name" id="displayName">-</div>
+      <p style="margin:0.5rem 0;opacity:0.7;" id="displayEmail">-</p>
+      <p style="margin-bottom:1rem;" id="displayLevel">Non certifié</p>
+      <a href="quiz.html" class="btn btn--primary" style="display:inline-block;margin-bottom:0.5rem;">
+        🎓 Passer l'Examen
+      </a>
+      <br>
+      <button onclick="logout()" class="btn btn--secondary" style="margin-top:0.5rem;">
+        Déconnexion
+      </button>
+    </div>
+
+    <!-- ====== FORMULAIRES ====== -->
+    <div id="authForms" class="auth-card">
+      <h1>🎌 Espace Candidat</h1>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchTab('login')">Connexion</div>
+        <div class="auth-tab" onclick="switchTab('register')">Inscription</div>
+      </div>
+
+      <div id="errorMsg" class="auth-error"></div>
+      <div id="successMsg" class="auth-success"></div>
+
+      <!-- Login -->
+      <form id="loginForm" class="auth-form active" onsubmit="login(event)">
+        <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
+        <input type="password" id="loginPassword" placeholder="Mot de passe" required>
+        <button type="submit" class="btn btn--primary">Se connecter</button>
+      </form>
+
+      <!-- Register -->
+      <form id="registerForm" class="auth-form" onsubmit="register(event)">
+        <input type="text" id="regUsername" placeholder="Nom d'utilisateur" required>
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="password" id="regPassword" placeholder="Mot de passe (min 6 caractères)" required minlength="6">
+        <input type="text" id="regFullName" placeholder="Nom complet (pour le certificat)" required>
+        <button type="submit" class="btn btn--primary">Créer mon compte</button>
+      </form>
+
+      <div class="auth-extra">
+        <span id="switchText">Pas encore de compte ?</span>
+        <a onclick="switchTab('register')" id="switchLink">S'inscrire</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="gov-footer">
+    <p>&copy; 2026 Bureau National de Certification Otaku</p>
+  </footer>
+
+  <script>
+    const API = 'http://localhost:8000';
+
+    // Vérifier si déjà connecté
+    const token = localStorage.getItem('bnc_token');
+    const user = JSON.parse(localStorage.getItem('bnc_user') || 'null');
+    if (token && user) { showUserInfo(user); }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      if (tab === 'login') {
+        document.querySelector('.auth-tab').classList.add('active');
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('switchText').textContent = 'Pas encore de compte ?';
+        document.getElementById('switchLink').textContent = 'S\'inscrire';
+        document.getElementById('switchLink').onclick = () => switchTab('register');
+      } else {
+        document.querySelectorAll('.auth-tab')[1].classList.add('active');
+        document.getElementById('registerForm').classList.add('active');
+        document.getElementById('switchText').textContent = 'Déjà un compte ?';
+        document.getElementById('switchLink').textContent = 'Se connecter';
+        document.getElementById('switchLink').onclick = () => switchTab('login');
+      }
+      hideError();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function hideError() {
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    // ====== INSCRIPTION ======
+    async function register(e) {
+      e.preventDefault(); hideError();
+      const body = {
+        username: document.getElementById('regUsername').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        full_name: document.getElementById('regFullName').value,
+      };
+      try {
+        const res = await fetch(API + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) { showError(data.detail || 'Erreur inscription'); return; }
+        document.getElementById('successMsg').textContent = 'Compte créé ! Connecte-toi.';
+        document.getElementById('successMsg').style.display = 'block';
+        switchTab('login');
+      } catch (err) { showError('Erreur réseau'); }
+    }
+
+    // ====== CONNEXION ======
+    async function login(e) {
+      e.preventDefault(); hideError();
+      const body = {
+        username: document.getElementById('loginUsername').value,
+        password: document.getElementById('loginPassword').value,
+      };
+      try {
+        const res = await fetch(API + '/api/auth/login/client', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) { showError(data.detail || 'Identifiants invalides'); return; }
+        localStorage.setItem('bnc_token', data.access_token);
+        localStorage.setItem('bnc_user', JSON.stringify(data.user));
+        showUserInfo(data.user);
+      } catch (err) { showError('Erreur réseau'); }
+    }
+
+    function showUserInfo(user) {
+      document.getElementById('authForms').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'block';
+      document.getElementById('displayName').textContent = user.full_name || user.username;
+      document.getElementById('displayEmail').textContent = user.email || '';
+      document.getElementById('displayLevel').textContent = user.level || 'Non certifié';
+    }
+
+    function logout() {
+      localStorage.removeItem('bnc_token');
+      localStorage.removeItem('bnc_user');
+      document.getElementById('authForms').style.display = 'block';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

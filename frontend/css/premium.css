@@ -1,0 +1,229 @@
+.page-premium {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.page-premium h1 {
+  text-align: center;
+  color: #ffd700;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.page-premium .subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 2rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.product-card {
+  background: linear-gradient(135deg, #16213e, #0f3460);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(212,160,23,0.3);
+}
+
+.product-card .badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #e94560;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.product-card .icon {
+  font-size: 3rem;
+  margin: 0.5rem 0;
+}
+
+.product-card h3 {
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.product-card p {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  min-height: 40px;
+}
+
+.product-card .price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4caf50;
+  margin-bottom: 1rem;
+}
+
+.product-card .price small {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.operateur-select {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.operateur-btn {
+  padding: 8px 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.operateur-btn:hover {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.1);
+}
+
+.operateur-btn.active {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.2);
+}
+
+.operateur-btn.mtn { border-color: #ffcc00; color: #ffcc00; }
+.operateur-btn.orange { border-color: #ff6600; color: #ff6600; }
+.operateur-btn.wave { border-color: #00a3ff; color: #00a3ff; }
+
+.phone-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: #1a1a2e;
+  color: white;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.phone-input:focus {
+  border-color: #ffd700;
+  outline: none;
+}
+
+.btn-pay {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-pay:hover { opacity: 0.9; }
+.btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-pay.mtn { background: #ffcc00; color: #1a1a2e; }
+.btn-pay.orange { background: #ff6600; }
+.btn-pay.wave { background: #00a3ff; }
+
+.payment-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.payment-modal__card {
+  background: #16213e;
+  border: 1px solid #ffd700;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+
+.payment-modal__card h2 { color: #ffd700; margin-bottom: 1rem; }
+.payment-modal__card .spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,215,0,0.2);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.payment-modal__card .check {
+  font-size: 3rem;
+  color: #4caf50;
+  margin: 0.5rem 0;
+}
+
+.payment-modal__card .error-icon {
+  font-size: 3rem;
+  color: #f44336;
+  margin: 0.5rem 0;
+}
+
+.payment-history {
+  margin-top: 3rem;
+}
+
+.payment-history h2 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.payment-history table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.payment-history th,
+.payment-history td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.payment-history th {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.status-success { color: #4caf50; font-weight: 600; }
+.status-pending { color: #ff9800; font-weight: 600; }
+.status-failed { color: #f44336; font-weight: 600; }

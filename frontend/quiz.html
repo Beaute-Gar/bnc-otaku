@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examen National Otaku — BNC</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="gov-header">
+    <div class="gov-header__emblem">
+      <span class="emblem-text">BNC-OTAKU · EXAMEN</span>
+      <span class="emblem-sub">Session 2026</span>
+    </div>
+    <nav class="gov-nav">
+      <a href="index.html">Accueil</a>
+      <a href="quiz.html" class="active">Examen</a>
+    </nav>
+  </header>
+
+  <main class="quiz-container">
+    <!-- ====== ÉCRAN D'ACCUEIL ====== -->
+    <section id="quizIntro" class="quiz-intro">
+      <h1>📜 Examen National de Certification Otaku</h1>
+      <div class="quiz-intro__rules">
+        <h3>Règlement</h3>
+        <ul>
+          <li>10 questions générées par l'IA Gemini</li>
+          <li>4 niveaux de difficulté : Facile → Légendaire</li>
+          <li>1 seule bonne réponse par question</li>
+          <li>Pas de limite de temps (pour l'instant)</li>
+          <li>N'interromps pas l'examen, otaku-san !</li>
+        </ul>
+      </div>
+      <div class="quiz-intro__theme">
+        <label for="themeInput">Thème optionnel (univers spécifique) :</label>
+        <input type="text" id="themeInput" placeholder="Naruto, One Piece, AOT, laisser vide pour aléatoire...">
+      </div>
+      <button onclick="startQuiz()" class="btn btn--primary btn--large">
+        ✧ Commencer l'Examen ✧
+      </button>
+    </section>
+
+    <!-- ====== ÉCRAN DE QUIZ ====== -->
+    <section id="quizScreen" class="quiz-screen" style="display:none;">
+      <div class="quiz-header">
+        <span id="questionCounter">Question 1/10</span>
+        <span id="difficultyBadge" class="badge">Facile</span>
+        <span id="scoreDisplay" class="score-display">Score: 0</span>
+      </div>
+      <div id="questionCard" class="question-card">
+        <h2 id="questionText">Chargement...</h2>
+        <div id="optionsContainer" class="options-container"></div>
+      </div>
+      <button id="nextBtn" onclick="nextQuestion()" class="btn btn--primary" style="display:none;">
+        Question Suivante →
+      </button>
+    </section>
+
+    <!-- ====== ÉCRAN DE RÉSULTATS ====== -->
+    <section id="resultScreen" class="result-screen" style="display:none;">
+      <div class="result-card">
+        <div id="resultEmoji" class="result-emoji">🏆</div>
+        <h1 id="resultLevel">-</h1>
+        <div class="result-score">
+          <span id="resultScoreText">0%</span>
+          <div class="result-bar">
+            <div id="resultBarFill" class="result-bar__fill"></div>
+          </div>
+        </div>
+        <p id="resultMessage" class="result-message">Félicitations !</p>
+        <div class="result-actions">
+          <button onclick="generateCertificate()" class="btn btn--primary">
+            🎓 Télécharger mon Diplôme
+          </button>
+          <button onclick="location.reload()" class="btn btn--secondary">
+            Rejouer
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== AD-GATE AVANT TÉLÉCHARGEMENT ====== -->
+    <section id="adGateScreen" class="ad-gate" style="display:none;">
+      <div class="ad-gate__card">
+        <h2>⏳ PATIENTE 5 SECONDES ⏳</h2>
+        <p>Ce téléchargement est supporté par la publicité.</p>
+        <div id="adTimer" class="ad-timer">5</div>
+        <div id="adGateContent" class="ad-gate__content">
+          <p>🔞 Découvre l'univers Otaku Premium</p>
+          <button id="adSkipBtn" onclick="skipAd()" class="btn btn--secondary" disabled>
+            Télécharger le Certificat
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="gov-footer">
+    <p>&copy; 2026 BNC-Otaku — Examen généré par IA Gemini</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/certificate.js"></script>
+  <script>if (!requireAuth()) {}</script>
+</body>
+</html>
