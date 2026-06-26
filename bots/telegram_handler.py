@@ -37,6 +37,9 @@ class TelegramBotHandler:
         self.app.add_handler(CommandHandler("start", self._cmd_start))
         self.app.add_handler(CommandHandler("examen", self._cmd_examen))
         self.app.add_handler(CommandHandler("certificat", self._cmd_certificat))
+        self.app.add_handler(CommandHandler("inscription", self._cmd_inscription))
+        self.app.add_handler(CommandHandler("premium", self._cmd_premium))
+        self.app.add_handler(CommandHandler("site", self._cmd_site))
         self.app.add_handler(CommandHandler("aide", self._cmd_aide))
 
         # Messages texte
@@ -76,27 +79,66 @@ class TelegramBotHandler:
         await update.message.reply_text(
             "🎌 *Bienvenue au BNC-Otaku !*\n\n"
             "Je suis le bot officiel du Bureau National de Certification Otaku.\n\n"
-            "Commandes :\n"
+            "*Commandes disponibles :*\n"
             "• `/examen` — Lancer l'examen de certification\n"
             "• `/certificat` — Vérifier un diplôme\n"
+            "• `/inscription` — Créer un compte\n"
+            "• `/premium` — Voir les offres premium\n"
+            "• `/site` — Lien direct vers le site\n"
             "• `/aide` — Voir cette aide\n\n"
-            f"Site officiel : {self._site_url()}",
+            f"🌐 *Site officiel :* [Clique ici]({self._site_url()})",
             parse_mode="Markdown",
         )
 
     async def _cmd_examen(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "📜 *Examen National de Certification Otaku*\n\n"
-            f"Rends-toi sur {self._site_url('/quiz.html')}\n\n"
-            "10 questions genérées par IA Gemini avec 4 niveaux de difficulté !",
+            f"Tu peux passer l'examen ici :\n"
+            f"🔗 {self._site_url('/quiz.html')}\n\n"
+            "10 questions générées par IA avec 4 niveaux (facile → légendaire).\n"
+            "Tu dois être connecté pour commencer.",
             parse_mode="Markdown",
         )
 
     async def _cmd_certificat(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "🎓 *Vérification de Certificat*\n\n"
-            f"Va sur {self._site_url()} et utilise la section "
-            "'Vérifier un diplôme' avec ton numéro de certificat.",
+            "Pour vérifier un diplôme, rends-toi sur le site :\n"
+            f"🔗 {self._site_url()}\n\n"
+            "Entre ton numéro de certificat dans la section "
+            "'Vérifier un diplôme'.",
+            parse_mode="Markdown",
+        )
+
+    async def _cmd_inscription(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text(
+            "📝 *Créer un compte BNC-Otaku*\n\n"
+            f"Inscris-toi directement ici :\n"
+            f"🔗 {self._site_url('/login.html')}\n\n"
+            "Après inscription, tu pourras passer l'examen "
+            "et obtenir ton certificat !",
+            parse_mode="Markdown",
+        )
+
+    async def _cmd_premium(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text(
+            "⭐ *Offres Premium BNC-Otaku*\n\n"
+            "Boost ton expérience avec nos offres :\n\n"
+            "• *Diplôme Gold Edition* — 500 FCFA\n"
+            "• *Grade Boost* — 200 FCFA\n"
+            "• *Pack Légendaire* — 1000 FCFA\n"
+            "• *Code Parrain* — 300 FCFA\n\n"
+            f"🔗 {self._site_url('/premium.html')}\n\n"
+            "Paiement Mobile Money (MTN/Orange).",
+            parse_mode="Markdown",
+        )
+
+    async def _cmd_site(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text(
+            "🌐 *BNC-Otaku — Site Officiel*\n\n"
+            f"🔗 {self._site_url()}\n\n"
+            "Retrouve toutes les fonctionnalités : "
+            "examen, certificats, premium et classement.",
             parse_mode="Markdown",
         )
 
