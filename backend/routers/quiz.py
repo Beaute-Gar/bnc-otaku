@@ -1632,13 +1632,14 @@ def submit_quiz(
     grade = _score_to_grade(score_pct)
     correct_count = sum(1 for d in details if d["is_correct"])
 
+    # Sauvegarder le niveau joué AVANT d'écraser session.level par le grade
+    level_name = session.level or ""
     session.status = "completed"
     session.completed_at = None
     session.score = score_pct
     session.level = grade
 
     # Débloquer le niveau suivant si ≥ 55% (grade A ou mieux)
-    level_name = session.level or ""
     if score_pct >= 55 and level_name:
         completed = json.loads(user.completed_levels or "[]")
         if level_name not in completed:

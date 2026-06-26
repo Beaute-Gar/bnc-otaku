@@ -35,7 +35,7 @@ def init_db():
         "ALTER TABLE quiz_questions MODIFY difficulty VARCHAR(30) NOT NULL",
         "ALTER TABLE exam_sessions MODIFY level VARCHAR(30) DEFAULT NULL",
         "ALTER TABLE users ADD COLUMN highest_unlocked VARCHAR(30) DEFAULT 'Junior Otaku'",
-        "ALTER TABLE users ADD COLUMN completed_levels TEXT DEFAULT '[]'",
+        "ALTER TABLE users ADD COLUMN completed_levels VARCHAR(255) DEFAULT '[]'",
     ]
     for sql in migrations:
         try:
