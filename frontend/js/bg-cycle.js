@@ -1,57 +1,33 @@
 (function() {
   'use strict';
 
-  const VIDEO_URLS = [
-    'videos/anime-bg.mp4',
-    'videos/sakura-bg.mp4',
-    'https://cdn.pixabay.com/video/2024/05/30/214500_large.mp4',
-    'https://cdn.pixabay.com/video/2022/03/26/111977-692666934_large.mp4',
-    'https://cdn.pixabay.com/video/2025/03/26/267601_large.mp4',
-    'https://www.yudiz.com/codepen/hover-reveal/amv.mp4',
-  ];
+  var bg = document.getElementById('bg-image');
+  if (!bg) return;
 
-  const DELAY_MS = 4000;
-  let currentIdx = 0;
-  let timer = null;
-  const video = document.getElementById('bg-video');
-  if (!video) return;
-
-  const preloader = document.createElement('video');
-  preloader.muted = true;
-  preloader.preload = 'auto';
-  preloader.style.display = 'none';
-  document.body.appendChild(preloader);
-
-  function preloadNext(idx) {
-    const src = VIDEO_URLS[idx % VIDEO_URLS.length];
-    preloader.src = src;
-    preloader.load();
+  var images = [];
+  for (var i = 1; i <= 20; i++) {
+    images.push('wallpapers/wp_' + String(i).padStart(2, '0') + '.jpg');
   }
 
-  function switchToNext() {
-    currentIdx = (currentIdx + 1) % VIDEO_URLS.length;
-    const src = VIDEO_URLS[currentIdx];
-    video.src = src;
-    video.play().catch(() => {});
-    preloadNext(currentIdx + 1);
+  var DELAY = 4000;
+  var idx = 0;
+  var timer = null;
+
+  function setBg(src) {
+    bg.style.backgroundImage = 'url(' + src + ')';
+  }
+
+  function next() {
+    idx = (idx + 1) % images.length;
+    setBg(images[idx]);
   }
 
   function scheduleNext() {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(switchToNext, DELAY_MS);
+    timer = setTimeout(next, DELAY);
   }
 
-  video.addEventListener('loadeddata', () => {
-    video.play().catch(() => {});
-  });
-
-  video.src = VIDEO_URLS[0];
-  video.play().catch(() => {});
-  preloadNext(1);
-
-  video.addEventListener('error', () => {
-    switchToNext();
-  });
+  setBg(images[0]);
 
   document.addEventListener('mousemove', scheduleNext);
 })();

@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BNC-Otaku — Bureau National de Certification Otaku</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
   <!-- ====== LIVE WALLPAPER ANIME BACKGROUND ====== -->
-  <video id="bg-video" autoplay loop muted playsinline>
-    <source src="https://cdn.pixabay.com/video/2021/08/14/85345-591648036_large.mp4" type="video/mp4">
-    <source src="videos/anime-bg.mp4" type="video/mp4">
-  </video>
+  <div id="bg-image" class="bg-image"></div>
   <div class="bg-overlay"></div>
   <div id="particles-js"></div>
 
@@ -117,74 +113,6 @@
     </div>
   </section>
 
-  <!-- ====== TOP ANIME LIST (hover reveal) ====== -->
-  <section class="anime-list">
-    <div class="anime-list__wrapper">
-      <div class="anime-list__header">
-        <p>LES INCONTOURNABLES</p>
-        <h2 class="section-title">Top Animés</h2>
-      </div>
-      <ul class="anime-list__items" id="animeList">
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/1.webp">
-          <span class="anime-list__year">2019</span>
-          <span class="anime-list__title" data-text="Demon Slayer">Demon Slayer</span>
-          <span class="anime-list__genre">Action / Surnaturel</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/2.webp">
-          <span class="anime-list__year">2022</span>
-          <span class="anime-list__title" data-text="Attack on Titan">Attack on Titan</span>
-          <span class="anime-list__genre">Action / Drame</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/3.webp">
-          <span class="anime-list__year">2023</span>
-          <span class="anime-list__title" data-text="Jujutsu Kaisen">Jujutsu Kaisen</span>
-          <span class="anime-list__genre">Action / Surnaturel</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/4.webp">
-          <span class="anime-list__year">2021</span>
-          <span class="anime-list__title" data-text="One Piece">One Piece</span>
-          <span class="anime-list__genre">Aventure / Shonen</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/5.webp">
-          <span class="anime-list__year">2020</span>
-          <span class="anime-list__title" data-text="My Hero Academia">My Hero Academia</span>
-          <span class="anime-list__genre">Action / Super-héros</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/6.webp">
-          <span class="anime-list__year">2024</span>
-          <span class="anime-list__title" data-text="Solo Leveling">Solo Leveling</span>
-          <span class="anime-list__genre">Action / Fantasy</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/7.webp">
-          <span class="anime-list__year">2018</span>
-          <span class="anime-list__title" data-text="Violet Evergarden">Violet Evergarden</span>
-          <span class="anime-list__genre">Drame / Romance</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/8.webp">
-          <span class="anime-list__year">2022</span>
-          <span class="anime-list__title" data-text="Chainsaw Man">Chainsaw Man</span>
-          <span class="anime-list__genre">Action / Horreur</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/9.webp">
-          <span class="anime-list__year">2023</span>
-          <span class="anime-list__title" data-text="Vinland Saga">Vinland Saga</span>
-          <span class="anime-list__genre">Historique / Drame</span>
-        </li>
-        <li class="anime-list__item" data-image="https://www.yudiz.com/codepen/hover-reveal/10.webp">
-          <span class="anime-list__year">2021</span>
-          <span class="anime-list__title" data-text="Frieren">Frieren</span>
-          <span class="anime-list__genre">Fantasy / Aventure</span>
-        </li>
-      </ul>
-    </div>
-    <!-- Custom cursor ball -->
-    <div class="anime-list__cursor" id="animeCursor"></div>
-    <!-- Floating hover image -->
-    <div class="anime-list__hover-img" id="animeHoverImg">
-      <img src="" alt="">
-    </div>
-  </section>
-
   <!-- ====== VÉRIFICATION ====== -->
   <section id="verification" class="verification">
     <h2 class="section-title">Vérifier un Diplôme</h2>
@@ -243,7 +171,6 @@
   <script src="js/auth.js"></script>
   <script src="js/bg-cycle.js"></script>
   <script src="js/assistant.js"></script>
-  <script src="js/anime-list.js"></script>
   <script>
     async function verifyCert() {
       const num = document.getElementById('certInput').value.trim();
