@@ -66,8 +66,8 @@ class Settings(BaseSettings):
     notchpay_public_key: str = ""
 
     # --- Frontend ---
-    frontend_url: str = "http://localhost:8000"
-    cors_origins: str = "http://localhost:8000,http://localhost:5500"
+    frontend_url: str = "https://bnc-otaku.onrender.com"
+    cors_origins: str = "https://bnc-otaku.onrender.com"
 
     @property
     def cors_origin_list(self) -> List[str]:
