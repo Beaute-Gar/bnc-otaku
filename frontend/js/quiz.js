@@ -3,6 +3,8 @@ let questions = [];
 let currentIndex = 0;
 let answers = [];
 let score = 0;
+let correctCount = 0;
+let totalPoints = 0;
 
 const DIFFICULTY_COLORS = {
   facile: '#4caf50',
@@ -14,6 +16,20 @@ const DIFFICULTY_COLORS = {
 function getDifficultyPoints(d) {
   const map = { facile: 5, moyen: 10, difficile: 15, legendaire: 20 };
   return map[d] || 10;
+}
+
+function updateProgress() {
+  const total = questions.length;
+  const pct = total > 0 ? Math.round((currentIndex / total) * 100) : 0;
+  const bar = document.getElementById('quizProgressBar');
+  if (bar) {
+    bar.style.setProperty('--progress', `${pct}%`);
+    bar.style.background = `linear-gradient(90deg, var(--success), var(--gold), var(--accent))`;
+    bar.style.backgroundSize = `${pct}% 100%`;
+    bar.style.backgroundRepeat = 'no-repeat';
+    bar.style.backgroundColor = 'rgba(255,255,255,0.1)';
+  }
+  document.getElementById('quizProgressText').textContent = `${pct}%`;
 }
 
 async function startQuiz() {
@@ -41,13 +57,18 @@ async function startQuiz() {
     answers = [];
     currentIndex = 0;
     score = 0;
+    correctCount = 0;
+    totalPoints = 0;
+
+    questions.forEach(q => { totalPoints += getDifficultyPoints(q.difficulty); });
 
     quizScreen.style.display = 'block';
+    updateProgress();
     showQuestion(0);
   } catch (err) {
     intro.style.display = 'block';
     intro.innerHTML += `<p class="error" style="color:var(--error);margin-top:1rem;">
-      ❌ Erreur de chargement du quiz : ${err.message}
+      ❌ Erreur de chargement : ${err.message}
     </p>`;
   }
 }
@@ -92,10 +113,10 @@ function selectOption(index) {
     if (i === index) btn.classList.add('selected');
   });
 
-  const isCorrect = true;
-  if (isCorrect) score += getDifficultyPoints(q.difficulty);
-
   answers.push(index);
+  score += getDifficultyPoints(q.difficulty);
+  correctCount++;
+
   document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
 
   document.getElementById('nextBtn').style.display = 'inline-block';
@@ -106,9 +127,16 @@ function selectOption(index) {
 
 function nextQuestion() {
   currentIndex++;
+  updateProgress();
   if (currentIndex < questions.length) {
     showQuestion(currentIndex);
   } else {
+    // At 100% progress before showing results
+    document.getElementById('quizProgressText').textContent = '100%';
+    const bar = document.getElementById('quizProgressBar');
+    if (bar) {
+      bar.style.backgroundSize = '100% 100%';
+    }
     showResults();
   }
 }
@@ -124,7 +152,7 @@ async function showResults() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Erreur soumission');
 
-    // Ad-gate avant d'afficher les résultats
+    // Ad-gate avant résultats
     document.getElementById('resultScreen').style.display = 'none';
     await showAdGate();
     document.getElementById('adGateScreen').style.display = 'none';

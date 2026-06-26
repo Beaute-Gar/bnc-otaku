@@ -378,6 +378,39 @@ body {
   color: var(--gold);
 }
 
+/* Barre de progression du quiz */
+.quiz-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+.quiz-progress__fill {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+.quiz-progress__fill {
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+  background-color: rgba(255,255,255,0.1);
+  background-image: linear-gradient(90deg, var(--success), var(--gold), var(--accent));
+  transition: background-size 0.5s ease;
+}
+#quizProgressText {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gold);
+  min-width: 3rem;
+  text-align: right;
+}
+
 /* Carte question */
 .question-card {
   background: var(--bg-card);
