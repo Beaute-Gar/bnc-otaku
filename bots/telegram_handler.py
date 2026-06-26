@@ -291,6 +291,10 @@ class TelegramBotHandler:
         await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
         del context.user_data["quiz"]
 
+    async def _quiz_finish(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("✅ Quiz terminé ! Retourne voir le résultat ci-dessus.")
+        return ConversationHandler.END
+
     async def _quiz_cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Quiz annulé.")
         if "quiz" in context.user_data:
