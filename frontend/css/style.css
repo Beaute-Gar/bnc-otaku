@@ -526,6 +526,33 @@ body {
   font-style: italic;
 }
 
+/* ====== BOUTON FLOTTANT TELEGRAM ====== */
+.telegram-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  width: 56px;
+  height: 56px;
+  background: #0088cc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,136,204,0.4);
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-decoration: none;
+}
+.telegram-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(0,136,204,0.6);
+}
+.telegram-float svg {
+  width: 28px;
+  height: 28px;
+  fill: white;
+}
+
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
   .gov-header { flex-direction: column; gap: 0.5rem; }

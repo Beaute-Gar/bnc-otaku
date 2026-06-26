@@ -8,8 +8,8 @@ import asyncio
 import logging
 from typing import Optional
 
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters, ContextTypes
 
 from backend.config import settings
 from backend.database import session_factory
@@ -49,7 +49,19 @@ class TelegramBotHandler:
         self.app.add_handler(CommandHandler("top", self._cmd_top))
         self.app.add_handler(CommandHandler("partager", self._cmd_partager))
         self.app.add_handler(CommandHandler("site", self._cmd_site))
+        self.app.add_handler(CommandHandler("image", self._cmd_image))
         self.app.add_handler(CommandHandler("aide", self._cmd_aide))
+
+        # Quiz conversation
+        quiz_conv = ConversationHandler(
+            entry_points=[CommandHandler("quizz", self._quiz_start)],
+            states={
+                "QUESTION": [CallbackQueryHandler(self._quiz_callback, pattern=r"^q_")],
+                "FINISH": [MessageHandler(filters.TEXT & ~filters.COMMAND, self._quiz_finish)],
+            },
+            fallbacks=[CommandHandler("cancel", self._quiz_cancel)],
+        )
+        self.app.add_handler(quiz_conv)
 
         # Messages texte
         self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
@@ -153,6 +165,137 @@ class TelegramBotHandler:
             f"{self._sponsor()}",
             parse_mode="Markdown",
         )
+
+    async def _cmd_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_photo(
+            photo=self._site_url("/img/bnc-banner.png") if False else "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png",
+            caption=f"🎌 *BNC-Otaku* — Rejoins-nous !\n{self._site_url()}",
+            parse_mode="Markdown",
+        )
+
+    # ====== QUIZ INLINE DANS TELEGRAM ======
+
+    Q_STATES = {"QUESTION": 1, "FINISH": 2}
+
+    async def _quiz_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        args = context.args
+        username = args[0] if args else None
+        if not username:
+            await update.message.reply_text(
+                "📝 *Quiz dans Telegram*\n\n"
+                "Envoie `/quizz ton_pseudo` pour commencer.\n"
+                "Exemple : `/quizz naruto_fan`\n\n"
+                "Tu dois avoir un compte sur le site BNC-Otaku.",
+                parse_mode="Markdown",
+            )
+            return ConversationHandler.END
+
+        with session_factory() as db:
+            user = db.query(User).filter(User.username == username).first()
+            if not user:
+                await update.message.reply_text(
+                    f"❌ Pseudo `{username}` introuvable. Inscris-toi d'abord sur le site.",
+                    parse_mode="Markdown",
+                )
+                return ConversationHandler.END
+
+        import backend.services.gemini_service as gs
+        import importlib; importlib.reload(gs)
+        try:
+            questions = gs.gemini_quiz.generate_questions()
+        except Exception:
+            import random
+            from backend.routers.quiz import MOCK_QUESTIONS
+            questions = random.sample(MOCK_QUESTIONS, 10)
+
+        context.user_data["quiz"] = {
+            "username": username,
+            "questions": questions,
+            "index": 0,
+            "answers": [],
+            "score": 0,
+        }
+        await self._quiz_send_question(update, context)
+        return "QUESTION"
+
+    async def _quiz_send_question(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        qd = context.user_data["quiz"]
+        idx = qd["index"]
+        q = qd["questions"][idx]
+
+        labels = ["A", "B", "C", "D"]
+        keyboard = [
+            [InlineKeyboardButton(f"{labels[i]}. {opt}", callback_data=f"q_{i}")]
+            for i, opt in enumerate(q["options"])
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        text = (
+            f"*Question {idx + 1}/10*  [{q['difficulty']}]\n\n"
+            f"{q['question']}"
+        )
+        call = update.callback_query
+        if call:
+            await call.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+        else:
+            await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+    async def _quiz_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        qd = context.user_data["quiz"]
+        idx = qd["index"]
+        q = qd["questions"][idx]
+        answer = int(query.data.split("_")[1])
+        qd["answers"].append(answer)
+
+        correct = answer == q["correct_index"]
+        pts = {"facile": 5, "moyen": 10, "difficile": 15, "legendaire": 20}.get(q["difficulty"], 10)
+        if correct:
+            qd["score"] += pts
+
+        feedback = "✅ *Correct !*" if correct else f"❌ *Faux* (réponse : {q['options'][q['correct_index']]})"
+        await query.edit_message_caption(caption=feedback, parse_mode="Markdown") if query.message.caption else await query.edit_message_text(
+            f"{feedback}\n\n👉 Question suivante dans 2s...", parse_mode="Markdown"
+        )
+
+        import asyncio
+        await asyncio.sleep(1.5)
+
+        qd["index"] += 1
+        if qd["index"] >= 10:
+            await self._quiz_show_result(update, context)
+            return ConversationHandler.END
+        else:
+            await self._quiz_send_question(update, context)
+            return "QUESTION"
+
+    async def _quiz_show_result(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        qd = context.user_data["quiz"]
+        total = sum({"facile": 5, "moyen": 10, "difficile": 15, "legendaire": 20}.get(q["difficulty"], 10) for q in qd["questions"])
+        pct = round((qd["score"] / total) * 100) if total else 0
+
+        if pct >= 90: level = "Légendaire 🏆"
+        elif pct >= 75: level = "Master ⭐"
+        elif pct >= 55: level = "Senior ✅"
+        else: level = "Junior 🌟"
+
+        text = (
+            f"🎯 *Résultat du Quiz Telegram*\n\n"
+            f"👤 Pseudo : `{qd['username']}`\n"
+            f"📊 Score : {pct}%\n"
+            f"🏆 Niveau : {level}\n\n"
+            f"🌐 {self._site_url()}"
+        )
+        chat_id = update.effective_chat.id
+        await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+        del context.user_data["quiz"]
+
+    async def _quiz_cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("❌ Quiz annulé.")
+        if "quiz" in context.user_data:
+            del context.user_data["quiz"]
+        return ConversationHandler.END
 
     async def _cmd_profil(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         args = context.args
