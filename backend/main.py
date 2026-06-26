@@ -17,7 +17,7 @@ from slowapi.errors import RateLimitExceeded
 from backend.config import settings
 from backend.database import init_db, session_factory
 from backend.security import limiter
-from backend.routers import quiz, auth, webhooks, certificate, payment, advertising
+from backend.routers import quiz, auth, webhooks, certificate, payment, advertising, contact
 from backend.services.payment_service import seed_products
 
 logger = logging.getLogger(__name__)
@@ -77,6 +77,7 @@ app.include_router(webhooks.router)
 app.include_router(certificate.router)
 app.include_router(payment.router)
 app.include_router(advertising.router)
+app.include_router(contact.router)
 
 
 @app.get("/health")
