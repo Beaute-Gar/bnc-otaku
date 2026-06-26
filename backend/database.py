@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from backend.config import settings
 
@@ -31,3 +31,15 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(engine)
+    # Migration : passer difficulty de ENUM à VARCHAR(30)
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text("ALTER TABLE quiz_questions MODIFY difficulty VARCHAR(30) NOT NULL")
+            )
+            conn.execute(
+                text("ALTER TABLE exam_sessions MODIFY level VARCHAR(30) DEFAULT NULL")
+            )
+            conn.commit()
+    except Exception:
+        pass  # Déjà migré ou table n'existe pas encore

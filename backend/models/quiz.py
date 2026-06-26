@@ -12,7 +12,7 @@ class ExamSession(Base):
     completed_at = Column(DateTime, default=None)
     status = Column(Enum("in_progress", "completed", "abandoned", name="exam_status"), nullable=False, default="in_progress")
     score = Column(Integer, default=None)
-    level = Column(Enum("junior", "senior", "master", "legendary", name="exam_level"), default=None)
+    level = Column(String(30), default=None)
 
 
 class QuizQuestion(Base):
@@ -23,7 +23,7 @@ class QuizQuestion(Base):
     question_text = Column(Text, nullable=False)
     options = Column(JSON, nullable=False)
     correct_index = Column(Integer, nullable=False)
-    difficulty = Column(Enum("facile", "moyen", "difficile", "legendaire", name="question_difficulty"), nullable=False)
+    difficulty = Column(String(30), nullable=False)
     category = Column(String(50), default=None)
     created_at = Column(DateTime, server_default=func.now())
 

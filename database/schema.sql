@@ -64,7 +64,7 @@ CREATE TABLE quiz_questions (
     question_text   TEXT NOT NULL,
     options         JSON NOT NULL,                       -- ["opt1","opt2","opt3","opt4"]
     correct_index   TINYINT UNSIGNED NOT NULL,           -- 0-3
-    difficulty      ENUM('facile','moyen','difficile','legendaire') NOT NULL,
+    difficulty      VARCHAR(30) NOT NULL,
     category        VARCHAR(50) DEFAULT NULL,
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (exam_session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
