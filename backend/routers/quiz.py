@@ -1475,39 +1475,47 @@ def start_quiz(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    questions_data = _generate_questions_data(theme)
+    try:
+        questions_data = _generate_questions_data(theme)
+        if not questions_data:
+            raise HTTPException(status_code=500, detail="Aucune question disponible")
 
-    session = ExamSession(user_id=user.id, status="in_progress")
-    db.add(session)
-    db.flush()
+        session = ExamSession(user_id=user.id, status="in_progress")
+        db.add(session)
+        db.flush()
 
-    created = []
-    for q in questions_data:
-        qq = QuizQuestion(
-            exam_session_id=session.id,
-            question_text=q["question"],
-            options=q["options"],
-            correct_index=q["correct_index"],
-            difficulty=q["difficulty"],
-            category=q.get("category"),
-        )
-        db.add(qq)
-        created.append(qq)
-    db.flush()
-
-    return StartResponse(
-        session_id=session.id,
-        questions=[
-            QuestionOut(
-                id=q.id,
-                question=q.question_text,
-                options=q.options,
-                difficulty=q.difficulty,
-                category=q.category,
+        created = []
+        for q in questions_data:
+            qq = QuizQuestion(
+                exam_session_id=session.id,
+                question_text=q["question"],
+                options=q["options"],
+                correct_index=q["correct_index"],
+                difficulty=q["difficulty"],
+                category=q.get("category"),
             )
-            for q in created
-        ],
-    )
+            db.add(qq)
+            created.append(qq)
+        db.flush()
+
+        return StartResponse(
+            session_id=session.id,
+            questions=[
+                QuestionOut(
+                    id=q.id,
+                    question=q.question_text,
+                    options=q.options,
+                    difficulty=q.difficulty,
+                    category=q.category,
+                )
+                for q in created
+            ],
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Erreur start_quiz")
+        raise HTTPException(status_code=500, detail=f"Erreur interne: {str(e)}")
 
 
 @router.get("/current/{session_id}", response_model=StartResponse)
