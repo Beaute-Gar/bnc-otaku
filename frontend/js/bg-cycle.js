@@ -7,10 +7,12 @@
     'https://cdn.pixabay.com/video/2024/05/30/214500_large.mp4',
     'https://cdn.pixabay.com/video/2022/03/26/111977-692666934_large.mp4',
     'https://cdn.pixabay.com/video/2025/03/26/267601_large.mp4',
+    'https://www.yudiz.com/codepen/hover-reveal/amv.mp4',
   ];
 
-  const CYCLE_MS = 4000;
+  const DELAY_MS = 4000;
   let currentIdx = 0;
+  let timer = null;
   const video = document.getElementById('bg-video');
   if (!video) return;
 
@@ -34,6 +36,11 @@
     preloadNext(currentIdx + 1);
   }
 
+  function scheduleNext() {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(switchToNext, DELAY_MS);
+  }
+
   video.addEventListener('loadeddata', () => {
     video.play().catch(() => {});
   });
@@ -46,5 +53,5 @@
     switchToNext();
   });
 
-  setInterval(switchToNext, CYCLE_MS);
+  document.addEventListener('mousemove', scheduleNext);
 })();

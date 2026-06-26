@@ -101,6 +101,7 @@
     getSystemImage,
     applySystemImage,
     getCache: () => IMG_CACHE,
+    getImagePool: () => ANIME_IMAGES.slice(),
   };
 
   if (document.readyState === 'loading') {
