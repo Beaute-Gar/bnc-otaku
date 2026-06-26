@@ -3,20 +3,25 @@
 
   const IMG_CACHE = {};
 
-  const FALLBACK_IMAGES = [
-    'https://picsum.photos/seed/anime1/800/600',
-    'https://picsum.photos/seed/anime2/800/600',
-    'https://picsum.photos/seed/anime3/800/600',
-    'https://picsum.photos/seed/anime4/800/600',
-    'https://picsum.photos/seed/anime5/800/600',
+  const ANIME_IMAGES = [
+    'https://cdn.pixabay.com/photo/2023/04/26/08/26/anime-7951551_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2022/12/01/18/19/anime-7629358_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/05/16/13/19/anime-7997703_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/04/21/09/03/anime-7940835_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/07/28/16/22/anime-8155178_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/04/11/01/10/anime-7915966_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/05/14/21/39/anime-7993355_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/06/26/05/00/anime-8089281_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/08/04/11/09/anime-8169592_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2023/02/13/14/47/anime-7787918_960_720.jpg',
   ];
 
-  let fbIdx = 0;
+  let currentIdx = 0;
 
   async function fetchImage() {
-    const fb = FALLBACK_IMAGES[fbIdx % FALLBACK_IMAGES.length];
-    fbIdx++;
-    return fb;
+    const url = ANIME_IMAGES[currentIdx % ANIME_IMAGES.length];
+    currentIdx++;
+    return url;
   }
 
   function setBackgroundImage(url) {
@@ -78,6 +83,8 @@
         const el = document.getElementById(id);
         if (el) {
           el.style.backgroundImage = `url(${url})`;
+          el.style.backgroundSize = 'cover';
+          el.style.backgroundPosition = 'center';
           IMG_CACHE[id] = url;
         }
       }
