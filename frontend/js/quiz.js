@@ -165,26 +165,9 @@ async function showResults() {
   }
 }
 
-function generateCertificate() {
+async function generateCertificate() {
   document.getElementById('resultScreen').style.display = 'none';
-  document.getElementById('adGateScreen').style.display = 'flex';
-  let countdown = 5;
-  const timerEl = document.getElementById('adTimer');
-  const skipBtn = document.getElementById('adSkipBtn');
-  skipBtn.disabled = true;
-
-  const interval = setInterval(() => {
-    countdown--;
-    timerEl.textContent = countdown;
-    if (countdown <= 0) {
-      clearInterval(interval);
-      skipBtn.disabled = false;
-      timerEl.textContent = '✅';
-    }
-  }, 1000);
-}
-
-function skipAd() {
+  await showAdGate();
   document.getElementById('adGateScreen').style.display = 'none';
   if (typeof downloadCertificate === 'function') {
     downloadCertificate();
