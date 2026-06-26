@@ -2,7 +2,7 @@
 Module 3 - Core du Bot Unifié (WhatsApp / Telegram)
 ====================================================
 Point central qui écoute les événements entrants des deux plateformes,
-détecte les certificats BNC-Otaku, et répond avec félicitations IA.
+détecte les certificats BNC-Otaku, et répond avec félicitations officielles.
 """
 
 import asyncio
@@ -112,13 +112,13 @@ class UnifiedBotManager:
             "📜 *Examen National de Certification Otaku*\n\n"
             "Prêt à prouver ta culture anime ? 🎌\n\n"
             "👉 Rends-toi sur https://bnc-otaku.cm/quiz.html\n"
-            "10 questions générées par l'IA Gemini !\n\n"
+            "10 questions du protocole officiel BNC-Otaku !\n\n"
             "Bonne chance, otaku-san ! ✨"
         )
         await self._send_message(platform, sender, response)
 
     async def _handle_generic(self, platform: str, sender: str, message: str):
-        """Réponse générique avec l'IA Gemini."""
+        """Réponse générique officielle."""
         try:
             congrat = self.gemini.generate_congratulation(sender, "fan", 0)
             response = f"🤖 BNC-Otaku Bot\n\n{congrat}\n\nPasse l'examen sur https://bnc-otaku.cm"

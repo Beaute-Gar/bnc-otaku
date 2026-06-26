@@ -19,7 +19,8 @@ class Settings:
         "\n\n─────────────────────\n"
         "🏛️ *Bureau National de Certification Otaku*\n"
         f"✅ Certifié par _{COMPANY_NAME}_\n"
-        f"📋 Validé par *{DIRECTOR_NAME}*, Directeur"
+        f"📋 Validé par *{DIRECTOR_NAME}*, Directeur\n"
+        f"📄 Document émis par {COMPANY_NAME} — Validé par {DIRECTOR_NAME}, Directeur."
     )
 
     SESSION_DIR: str = os.getenv("SESSION_DIR", str(Path(__file__).resolve().parent / "sessions" / "whatsapp_session"))

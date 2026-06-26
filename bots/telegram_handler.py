@@ -128,7 +128,7 @@ class TelegramBotHandler:
             "📜 *Examen National de Certification Otaku*\n\n"
             f"Tu peux passer l'examen ici :\n"
             f"🔗 {self._site_url('/quiz.html')}\n\n"
-            "10 questions générées par IA avec 4 niveaux (facile → légendaire).\n"
+            "10 questions du protocole officiel BNC-Otaku avec 4 niveaux (Junior → Légendaire).\n"
             "Tu dois être connecté pour commencer."
             f"{self._sponsor()}",
             parse_mode="Markdown",

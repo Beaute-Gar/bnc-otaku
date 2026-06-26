@@ -1,3 +1,7 @@
+import json
+import random
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -47,27 +51,21 @@ class CongratulateRequest(BaseModel):
     score: int
 
 
-# --- Questions de secours ---
+# --- Chargement des questions depuis le fichier JSON ---
 
-MOCK_QUESTIONS = [
-    {"question": "Quel est le vrai nom de Goku ?", "options": ["Kakarot", "Bardock", "Raditz", "Kakarotto"], "correct_index": 0, "difficulty": "facile", "category": "Dragon Ball"},
-    {"question": "Dans One Piece, quel est le rêve de Luffy ?", "options": ["Devenir Hokage", "Trouver le One Piece et devenir Roi des Pirates", "Devenir l'épéiste le plus fort", "Dessiner le meilleur manga"], "correct_index": 1, "difficulty": "facile", "category": "One Piece"},
-    {"question": "Quel est le nom du démon-épéiste dans Demon Slayer ?", "options": ["Tanjiro", "Zenitsu", "Inosuke", "Giyu"], "correct_index": 0, "difficulty": "facile", "category": "Demon Slayer"},
-    {"question": "Dans Naruto, quel Sharingan évolue en Rinnegan ?", "options": ["Sharingan de Sasuke", "Sharingan d'Itachi", "Sharingan de Madara", "Sharingan de Kakashi"], "correct_index": 2, "difficulty": "moyen", "category": "Naruto"},
-    {"question": "Quel animé met en scène un garçon qui contrôle les titans ?", "options": ["Tokyo Ghoul", "Attack on Titan", "Seraph of the End", "Parasyte"], "correct_index": 1, "difficulty": "facile", "category": "Attack on Titan"},
-    {"question": "Dans Death Note, quel est le vrai nom de Kira ?", "options": ["L", "Near", "Light Yagami", "Mello"], "correct_index": 2, "difficulty": "facile", "category": "Death Note"},
-    {"question": "Qui est le capitaine de la 5e division dans Bleach ?", "options": ["Shinji Hirako", "Sosuke Aizen", "Byakuya Kuchiki", "Toshiro Hitsugaya"], "correct_index": 1, "difficulty": "moyen", "category": "Bleach"},
-    {"question": "Dans Fullmetal Alchemist, quel est le nom du frère d'Edward ?", "options": ["Roy Mustang", "Alphonse Elric", "Van Hohenheim", "Scar"], "correct_index": 1, "difficulty": "moyen", "category": "Fullmetal Alchemist"},
-    {"question": "Quel animé de studio Ghibli met en scène une fille qui travaille chez sa tante sorcière ?", "options": ["Le Voyage de Chihiro", "Kiki la Petite Sorcière", "Mon Voisin Totoro", "Le Château Ambulant"], "correct_index": 1, "difficulty": "moyen", "category": "Ghibli"},
-    {"question": "Dans Hunter x Hunter, quel type de Nen est spécialisé dans la manipulation ?", "options": ["Emission", "Manipulation", "Matérialisation", "Transformation"], "correct_index": 1, "difficulty": "difficile", "category": "Hunter x Hunter"},
-    {"question": "Quel est le nom du personnage principal de Cowboy Bebop ?", "options": ["Jet Black", "Spike Spiegel", "Vicious", "Faye Valentine"], "correct_index": 1, "difficulty": "difficile", "category": "Cowboy Bebop"},
-    {"question": "Dans Evangelion, quel est le numéro de l'EVA de Shinji ?", "options": ["EVA-00", "EVA-01", "EVA-02", "EVA-03"], "correct_index": 1, "difficulty": "difficile", "category": "Evangelion"},
-    {"question": "Quelle technique utilise le Hachimon Tonko no Jin ?", "options": ["Rasengan", "Chidori", "Sharingan", "Byakugan"], "correct_index": 1, "difficulty": "legendaire", "category": "Naruto"},
-    {"question": "Dans JoJo's Bizarre Adventure, quel est le Stand de Jotaro ?", "options": ["The World", "Star Platinum", "Gold Experience", "Crazy Diamond"], "correct_index": 1, "difficulty": "legendaire", "category": "JoJo"},
-    {"question": "Quel est le véritable nom du héros dans One Punch Man ?", "options": ["Genos", "Saitama", "King", "Mumen Rider"], "correct_index": 1, "difficulty": "difficile", "category": "One Punch Man"},
-]
+_QUESTIONS_FILE = Path(__file__).resolve().parent.parent.parent / "json" / "anime_quiz_questions.json"
 
-DIFFICULTY_POINTS = {"facile": 5, "moyen": 10, "difficile": 15, "legendaire": 20}
+_ALL_QUESTIONS: list[dict] = []
+if _QUESTIONS_FILE.exists():
+    with open(_QUESTIONS_FILE, encoding="utf-8") as f:
+        _ALL_QUESTIONS = json.load(f)["questions"]
+
+DIFFICULTY_POINTS = {
+    "Junior Otaku": 5,
+    "Senior Otaku": 10,
+    "Master Otaku": 15,
+    "Otaku Legendaire": 20,
+}
 
 LEVEL_THRESHOLDS = [
     (90, "legendary"),
@@ -78,11 +76,10 @@ LEVEL_THRESHOLDS = [
 
 
 def _generate_questions_data(theme: Optional[str] = None):
-    try:
-        questions = gemini_quiz.generate_questions(theme=theme)
-    except Exception:
-        import random
-        questions = random.sample(MOCK_QUESTIONS, 10)
+    pool = _ALL_QUESTIONS
+    if theme:
+        pool = [q for q in pool if q.get("category", "").lower() == theme.lower()]
+    questions = random.sample(pool, min(10, len(pool)))
     return questions
 
 
@@ -244,6 +241,12 @@ def congratulate(
     try:
         message = gemini_quiz.generate_congratulation(req.username, req.level, req.score)
     except Exception:
-        message = f"Félicitations {req.username} ! Tu as obtenu le niveau {req.level} avec {req.score}% !"
+        message = (
+            f"Félicitations {req.username} ! Tu as obtenu le niveau {req.level} avec {req.score}% !\n\n"
+            f"Système d'Évaluation Autonome BNC-Otaku v2.0.\n"
+            f"Protocole d'examen régi par les standards de performance établis par la Direction de Djousse Tech Evolution.\n"
+            f"Ce certificat atteste de la validation des acquis conformément aux directives de qualité édictées par BeauteGar, Directeur.\n\n"
+            f"Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur."
+        )
 
     return {"message": message}

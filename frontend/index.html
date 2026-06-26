@@ -85,6 +85,29 @@
     </div>
   </section>
 
+  <!-- ====== GALERIE ANIME ====== -->
+  <section class="anime-gallery">
+    <h2 class="section-title">L'Univers BNC-Otaku</h2>
+    <p class="section-subtitle">Plonge dans l'ambiance des plus grands univers animés</p>
+    <div class="gallery-grid">
+      <div class="gallery-card" id="anime-image-1">
+        <div class="gallery-card__overlay">
+          <span>⚔ La puissance du guerrier</span>
+        </div>
+      </div>
+      <div class="gallery-card" id="anime-image-2">
+        <div class="gallery-card__overlay">
+          <span>🌟 La quête de la perfection</span>
+        </div>
+      </div>
+      <div class="gallery-card" id="anime-image-3">
+        <div class="gallery-card__overlay">
+          <span>👑 Le grade ultime t'attend</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ====== VÉRIFICATION ====== -->
   <section id="verification" class="verification">
     <h2 class="section-title">Vérifier un Diplôme</h2>
@@ -99,9 +122,11 @@
   <!-- ====== FOOTER ====== -->
   <footer class="gov-footer">
     <p><strong>Système d'Évaluation Autonome BNC-Otaku v2.0</strong></p>
+    <p>Protocole d'examen régi par les standards de performance établis par la Direction de Djousse Tech Evolution.</p>
+    <p>Ce certificat atteste de la validation des acquis conformément aux directives de qualité édictées par <strong>BeauteGar, Directeur</strong>.</p>
     <p>Développé, maintenu et opéré exclusivement par les équipes techniques de <strong>Djousse Tech Evolution</strong>.</p>
-    <p>Ce protocole d'examen est régi par les standards de performance établis par notre direction. En tant qu'institution numérique, Djousse Tech Evolution s'engage à garantir l'intégrité et l'authenticité de chaque certification délivrée par le Bureau National de Certification Otaku.</p>
     <p>Toute reproduction, falsification ou utilisation non autorisée des sceaux et documents officiels de Djousse Tech Evolution est strictement interdite.</p>
+    <p><em>Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur.</em></p>
     <p>&copy; 2026 Djousse Tech Evolution — Tous droits réservés.</p>
   </footer>
 
@@ -114,8 +139,8 @@
   </a>
 
   <script src="js/background.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/quiz.js"></script>
   <script>
     async function verifyCert() {
       const num = document.getElementById('certInput').value.trim();

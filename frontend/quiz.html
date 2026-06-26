@@ -23,15 +23,24 @@
     <section id="quizIntro" class="quiz-intro">
       <h1>📜 Examen National de Certification Otaku</h1>
       <div class="quiz-intro__rules">
-        <h3>Règlement</h3>
+        <h3>Protocole Officiel</h3>
+        <p style="font-size:0.85rem;opacity:0.8;margin-bottom:1rem;">
+          Système d'Évaluation Autonome BNC-Otaku v2.0. Protocole d'examen régi par les standards
+          de performance établis par la Direction de Djousse Tech Evolution.
+        </p>
         <ul>
-          <li>10 questions générées par l'IA Gemini</li>
-          <li>4 niveaux de difficulté : Facile → Légendaire</li>
+          <li>10 questions du protocole officiel BNC-Otaku</li>
+          <li>4 niveaux de difficulté : Junior Otaku → Otaku Légendaire</li>
           <li>1 seule bonne réponse par question</li>
           <li>Pas de limite de temps (pour l'instant)</li>
           <li>N'interromps pas l'examen, otaku-san !</li>
         </ul>
+        <p style="font-size:0.8rem;opacity:0.6;margin-top:1rem;">
+          Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur.
+        </p>
       </div>
+      <!-- Image captivante -->
+      <div id="quiz-motivation-img" class="quiz-motivation-img" style="margin-top:1.5rem;height:120px;border-radius:12px;background:linear-gradient(135deg,#0f3460,#1a1a2e);background-size:cover;background-position:center;border:1px solid rgba(255,215,0,0.2);"></div>
       <div class="quiz-intro__theme">
         <label for="themeInput">Thème optionnel (univers spécifique) :</label>
         <input type="text" id="themeInput" placeholder="Naruto, One Piece, AOT, laisser vide pour aléatoire...">
@@ -102,7 +111,10 @@
 
   <footer class="gov-footer">
     <p><strong>Système d'Évaluation Autonome BNC-Otaku v2.0</strong></p>
-    <p>Développé par <strong>Djousse Tech Evolution</strong> — &copy; 2026 Tous droits réservés.</p>
+    <p>Protocole d'examen régi par les standards de performance de <strong>Djousse Tech Evolution</strong>.</p>
+    <p>Ce certificat atteste de la validation des acquis conformément aux directives de qualité édictées par <strong>BeauteGar, Directeur</strong>.</p>
+    <p><em>Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur.</em></p>
+    <p>&copy; 2026 Djousse Tech Evolution — Tous droits réservés.</p>
   </footer>
 
   <a href="https://t.me/BNC_Otaku_Bot" target="_blank" class="telegram-float" title="Rejoins-nous sur Telegram">
@@ -114,10 +126,25 @@
   </a>
 
   <script src="js/background.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/ad-gate.js"></script>
   <script src="js/quiz.js"></script>
   <script src="js/certificate.js"></script>
-  <script>if (!requireAuth()) {}</script>
+  <script>
+    if (!requireAuth()) {}
+    // Charger l'image motivante
+    setTimeout(() => {
+      const el = document.getElementById('quiz-motivation-img');
+      if (el && window._bncImages) {
+        window._bncImages.loadAndApplyImage('quiz-motivation-img').then(url => {
+          if (url) {
+            el.style.backgroundImage = `url(${url})`;
+          }
+        });
+      }
+    }, 3000);
+  </script>
 </body>
 </html>

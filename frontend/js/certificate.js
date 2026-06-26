@@ -23,23 +23,23 @@ async function downloadCertificate() {
 
   const canvas = document.createElement('canvas');
   canvas.width = 800;
-  canvas.height = 600;
+  canvas.height = 650;
   const ctx = canvas.getContext('2d');
 
-  const bgGrad = ctx.createLinearGradient(0, 0, 800, 600);
+  const bgGrad = ctx.createLinearGradient(0, 0, 800, 650);
   bgGrad.addColorStop(0, '#f5e6c8');
   bgGrad.addColorStop(0.5, '#f0d9a0');
   bgGrad.addColorStop(1, '#e8c878');
   ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, 800, 600);
+  ctx.fillRect(0, 0, 800, 650);
 
   ctx.strokeStyle = '#8B6914';
   ctx.lineWidth = 8;
-  ctx.strokeRect(20, 20, 760, 560);
+  ctx.strokeRect(20, 20, 760, 610);
 
   ctx.strokeStyle = '#D4A017';
   ctx.lineWidth = 3;
-  ctx.strokeRect(35, 35, 730, 530);
+  ctx.strokeRect(35, 35, 730, 580);
 
   const sealX = 400, sealY = 200;
   ctx.beginPath();
@@ -86,8 +86,10 @@ async function downloadCertificate() {
 
   ctx.font = '11px serif';
   ctx.fillStyle = '#666';
-  ctx.fillText('Système d\'Évaluation Autonome BNC-Otaku v2.0 — Développé par Djousse Tech Evolution', 400, 560);
-  ctx.fillText('© 2026 Djousse Tech Evolution. Tous droits réservés.', 400, 575);
+  ctx.fillText('Système d\'Évaluation Autonome BNC-Otaku v2.0', 400, 560);
+  ctx.fillText('Protocole d\'examen régi par les standards de performance de Djousse Tech Evolution', 400, 575);
+  ctx.fillText('Ce certificat atteste de la validation des acquis conformément aux directives de BeauteGar, Directeur.', 400, 590);
+  ctx.fillText('Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur.', 400, 605);
 
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
