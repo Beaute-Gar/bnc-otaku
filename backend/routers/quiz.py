@@ -1,18 +1,14 @@
-import json
 import logging
 import random
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.user import User
 from backend.models.quiz import ExamSession, QuizQuestion, UserAnswer
-from backend.services.gemini_service import gemini_quiz
 from backend.security import limiter, get_current_user
 
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
@@ -1620,6 +1616,7 @@ def congratulate(
     user: User = Depends(get_current_user),
 ):
     try:
+        from backend.services.gemini_service import gemini_quiz
         message = gemini_quiz.generate_congratulation(req.username, req.level, req.score)
     except Exception:
         message = (
