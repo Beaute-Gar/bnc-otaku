@@ -77,8 +77,9 @@
 
       try {
         const res = await fetch(API + '/api/quiz/admin/user/' + encodeURIComponent(username) + '?key=' + encodeURIComponent(key), { method: 'DELETE' });
-        const data = await res.json();
-        if (!res.ok) { showResult('❌ ' + (data.detail || 'Erreur'), 'error'); return; }
+        let data;
+        try { data = await res.json(); } catch(e) { data = { detail: await res.text() }; }
+        if (!res.ok) { showResult('❌ ' + (data.detail || 'Erreur ' + res.status), 'error'); return; }
         showResult('✅ ' + data.message, 'success');
       } catch(e) {
         showResult('❌ Erreur réseau : ' + e.message, 'error');

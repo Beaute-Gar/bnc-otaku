@@ -1670,11 +1670,18 @@ def admin_list_users(
 ):
     if key != ADMIN_DELETE_KEY:
         raise HTTPException(status_code=403, detail="Clé admin invalide")
-    users = db.query(User).all()
-    return [
-        {"id": u.id, "username": u.username, "email": u.email, "role": u.role, "highest_unlocked": u.highest_unlocked, "completed_levels": u.completed_levels}
-        for u in users
-    ]
+    try:
+        users = db.query(User).all()
+        return [
+            {
+                "id": u.id, "username": u.username, "email": u.email, "role": u.role,
+                "highest_unlocked": getattr(u, "highest_unlocked", "Junior Otaku"),
+                "completed_levels": getattr(u, "completed_levels", "[]"),
+            }
+            for u in users
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur base de données: {str(e)}")
 
 
 @router.delete("/admin/user/{username}")
@@ -1685,11 +1692,16 @@ def admin_delete_user(
 ):
     if key != ADMIN_DELETE_KEY:
         raise HTTPException(status_code=403, detail="Clé admin invalide")
-    user = db.query(User).filter(User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
-    db.delete(user)
-    return {"message": f"Utilisateur '{username}' supprimé"}
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+        db.delete(user)
+        return {"message": f"Utilisateur '{username}' supprimé"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur suppression: {str(e)}")
 
 
 @router.post("/congratulate")
