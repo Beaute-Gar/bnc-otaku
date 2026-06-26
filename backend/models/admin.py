@@ -3,7 +3,7 @@ from backend.database import Base
 
 
 class AdEvent(Base):
-    __tablename__ = "ad_events"
+    __tablename__ = "admin_ad_events"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     event_type = Column(String(20), nullable=False, default="view")
