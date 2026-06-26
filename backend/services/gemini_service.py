@@ -2,34 +2,16 @@
 Module 1 - Moteur de Quiz IA (Gemini)
 ======================================
 Génère des questions de quiz anime inédites avec niveaux de difficulté.
-Utilise google-genai SDK (gemini-2.0-flash) avec fallback.
-AUCUNE clé API en dur - tout vient du .env.
+Utilise l'API REST Gemini directement (compatible toutes les clés AIzaSy... et AQ...).
 """
 
 import json
 import re
+import requests
 from typing import List, Dict, Optional
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from backend.config import settings
-
-# Import google-genai (nouveau SDK)
-try:
-    from google import genai
-    from google.genai import types as genai_types
-    _HAS_GENAI = True
-except ImportError:
-    _HAS_GENAI = False
-
-# Fallback vers l'ancien SDK
-try:
-    import google.generativeai as genai_legacy
-    _HAS_LEGACY = True
-except ImportError:
-    _HAS_LEGACY = False
-
-if not _HAS_GENAI and not _HAS_LEGACY:
-    raise ImportError("Aucun SDK Google Generative AI trouvé. Installez google-genai ou google-generativeai.")
 
 
 # --- Constantes ---
@@ -67,65 +49,40 @@ DIFFICULTY_MAP = {
 }
 
 
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
+
 class GeminiQuizGenerator:
-    """Générateur de quiz via Gemini AI."""
+    """Générateur de quiz via Gemini API REST."""
 
     def __init__(self):
         self.api_key = settings.gemini_api_key
-        self._client = None
-        if self.api_key:
-            self._init_client()
 
     def _ensure_client(self):
         if not self.api_key:
-            raise ValueError("GEMINI_API_KEY non configurée dans .env. Configure-la dans le fichier .env")
-        if not self._client:
-            self._init_client()
+            raise ValueError("GEMINI_API_KEY non configurée dans .env.")
 
-    def _init_client(self):
-        if _HAS_GENAI:
-            self._client = genai.Client(api_key=self.api_key)
-            self.model_name = "gemini-2.0-flash"
-            self._generate = self._generate_new
-        else:
-            genai_legacy.configure(api_key=self.api_key)
-            self._client = genai_legacy.GenerativeModel("gemini-1.5-flash")
-            self._generate = self._generate_legacy
-
-    def _generate_new(self, prompt: str) -> str:
-        response = self._client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config=genai_types.GenerateContentConfig(
-                temperature=0.9,
-                top_p=0.95,
-                max_output_tokens=4096,
-            ),
+    def _generate(self, prompt: str) -> str:
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.9,
+                "topP": 0.95,
+                "maxOutputTokens": 4096,
+            },
+        }
+        resp = requests.post(
+            f"{GEMINI_API_URL}?key={self.api_key}",
+            json=payload,
+            timeout=30,
         )
-        return response.text
-
-    def _generate_legacy(self, prompt: str) -> str:
-        import os, sys
-        # Timeout de sécurité via thread : 30s max
-        import threading
-        result = []
-        exception = []
-
-        def worker():
-            try:
-                r = self._client.generate_content(prompt)
-                result.append(r.text)
-            except Exception as e:
-                exception.append(e)
-
-        t = threading.Thread(target=worker, daemon=True)
-        t.start()
-        t.join(timeout=30)
-        if t.is_alive():
-            raise TimeoutError("Gemini API timeout (30s)")
-        if exception:
-            raise exception[0]
-        return result[0]
+        if resp.status_code != 200:
+            raise RuntimeError(f"Gemini API error {resp.status_code}: {resp.text[:200]}")
+        data = resp.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            raise ValueError("Aucune réponse générée par Gemini")
+        return candidates[0]["content"]["parts"][0]["text"]
 
     @retry(
         stop=stop_after_attempt(3),
