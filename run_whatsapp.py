@@ -14,15 +14,33 @@ from bots.whatsapp_playwright import WhatsAppPlaywrightHandler
 class SimpleManager:
     async def on_message_received(self, platform: str, sender: str, text: str):
         print(f"[{platform}] {sender}: {text}")
-        if text.lower() in ("bonjour", "hi", "salut"):
+        msg = text.lower().strip()
+
+        if msg in ("bonjour", "hi", "salut", "hello"):
+            reply = (
+                "🎌 *Bienvenue au BNC-Otaku !*\n\n"
+                "Commandes :\n"
+                "• `examen` — Lien vers l'examen\n"
+                "• `site` — Lien du site\n"
+                "• `stats` — Statistiques\n\n"
+                f"Site : https://bnc-otaku.onrender.com"
+            )
+        elif msg == "examen":
+            reply = f"📜 Passe l'examen ici : https://bnc-otaku.onrender.com/quiz.html"
+        elif msg == "site":
+            reply = f"🌐 https://bnc-otaku.onrender.com"
+        elif msg == "stats":
             from backend.database import session_factory
             from backend.models.user import User
+            from backend.models.quiz import ExamSession
             with session_factory() as db:
-                count = db.query(User).count()
-            await handler.send_message(
-                sender,
-                f"🎌 Bienvenue au BNC-Otaku !\n{count} otakus déjà inscrits.\nSite: https://bnc-otaku.onrender.com",
-            )
+                users = db.query(User).count()
+                exams = db.query(ExamSession).filter(ExamSession.status == "completed").count()
+            reply = f"📊 BNC-Otaku : {users} inscrits, {exams} examens complétés"
+        else:
+            reply = f"🤖 Commande inconnue. Envoie `bonjour` pour voir l'aide."
+
+        await handler.send_message(sender, reply)
 
 
 async def main():
