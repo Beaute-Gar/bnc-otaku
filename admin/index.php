@@ -14,7 +14,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
-    if ($username === 'admin' && password_verify($password, '$2b$12$JBdUjjqpTJofUsbSNq7J0uJXfkcBess/HCqf6ZTqc/7Ma6e6zR3c2')) {
+    if ($username === 'admin' && password_verify($password, '$2b$12$m.pSNLQBuM0tniTm1Gost.UtquGXvVG3ZKLqL7wKnTHyqgs1Zo3pa')) {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['admin_username'] = $username;
         $isLoggedIn = true;
@@ -176,7 +176,7 @@ if (!$isLoggedIn):
 
     <script>
         // Connexion Socket.IO au backend FastAPI
-        const socket = io('http://localhost:8000', {
+        const socket = io('https://bnc-otaku.onrender.com', {
             transports: ['websocket', 'polling'],
         });
 
