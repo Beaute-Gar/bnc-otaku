@@ -1438,6 +1438,8 @@ DIFFICULTY_POINTS = {
     "Otaku Legendaire": 20,
 }
 
+ADMIN_DELETE_KEY = "bnc-admin-2026"
+
 LEVEL_THRESHOLDS = [
     (90, "SS"),
     (75, "S"),
@@ -1659,6 +1661,21 @@ def submit_quiz(
         correct=correct_count,
         details=details,
     )
+
+
+@router.delete("/admin/user/{username}")
+def admin_delete_user(
+    username: str,
+    key: str = "",
+    db: Session = Depends(get_db),
+):
+    if key != ADMIN_DELETE_KEY:
+        raise HTTPException(status_code=403, detail="Clé admin invalide")
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    db.delete(user)
+    return {"message": f"Utilisateur '{username}' supprimé"}
 
 
 @router.post("/congratulate")

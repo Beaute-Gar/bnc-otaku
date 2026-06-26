@@ -658,6 +658,32 @@ body {
 
 .ad-gate__content { margin-top: 1rem; }
 
+.ad-video-container {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 1rem auto;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background: #000;
+}
+.ad-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ad-video__label {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  color: var(--gold);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 /* ====== FOOTER ====== */
 .gov-footer {
   text-align: center;
