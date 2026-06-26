@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Environnement
+.env
+venv/
+.venv/
+
+# Logs
+*.log
+bot_error.log
+
+# Sessions navigateur (WhatsApp Playwright)
+wa_sessions/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+Dockerfile
+docker-compose.yml
