@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — BNC-Otaku</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-panel { max-width: 600px; margin: 4rem auto; padding: 2rem; }
+    .admin-panel h1 { font-size: 1.5rem; margin-bottom: 2rem; color: var(--gold); text-align: center; }
+    .admin-panel label { display: block; margin: 1rem 0 0.3rem; font-size: 0.9rem; opacity: 0.8; }
+    .admin-panel input, .admin-panel select { width: 100%; padding: 0.7rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: #fff; }
+    .admin-panel .btn { margin-top: 1.5rem; width: 100%; }
+    .admin-panel .result { margin-top: 1rem; padding: 1rem; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; }
+    .admin-panel .result.success { background: rgba(76,175,80,0.2); border: 1px solid var(--success); }
+    .admin-panel .result.error { background: rgba(244,67,54,0.2); border: 1px solid var(--error); }
+    .quick-actions { display: flex; gap: 1rem; margin-top: 2rem; }
+    .quick-actions .btn { flex: 1; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="https://cdn.pixabay.com/video/2021/08/14/85345-591648036_large.mp4" type="video/mp4">
+    <source src="videos/anime-bg.mp4" type="video/mp4">
+  </video>
+  <div class="bg-overlay"></div>
+  <div id="particles-js"></div>
+
+  <header class="gov-header">
+    <div class="gov-header__emblem">
+      <span class="emblem-text">BNC-OTAKU · ADMIN</span>
+      <span class="emblem-sub">Panneau de Direction</span>
+    </div>
+    <nav class="gov-nav">
+      <a href="index.html">Accueil</a>
+      <a href="admin.html" class="active">Admin</a>
+    </nav>
+  </header>
+
+  <main class="admin-panel quiz-container">
+    <h1>🔐 Panneau d'Administration</h1>
+
+    <label for="adminKey">Clé d'administration</label>
+    <input type="password" id="adminKey" placeholder="Entrez la clé secrète" value="bnc-admin-2026">
+
+    <label for="targetUser">Nom d'utilisateur</label>
+    <input type="text" id="targetUser" placeholder="Uriel" value="Uriel">
+
+    <button onclick="deleteUser()" class="btn btn--primary">🗑 Supprimer l'utilisateur</button>
+
+    <div id="adminResult" class="result" style="display:none;"></div>
+
+    <div class="quick-actions">
+      <button onclick="deleteUser('Uriel')" class="btn btn--secondary">⚡ Supprimer Uriel</button>
+      <button onclick="listUsers()" class="btn btn--secondary">📋 Lister les utilisateurs</button>
+    </div>
+
+    <p style="margin-top:2rem;font-size:0.75rem;opacity:0.5;text-align:center;">
+      Document émis par Djousse Tech Evolution — Validé par BeauteGar, Directeur.
+    </p>
+  </main>
+
+  <script>
+    const API = '';
+
+    function showResult(msg, type) {
+      const el = document.getElementById('adminResult');
+      el.style.display = 'block';
+      el.className = 'result ' + type;
+      el.textContent = msg;
+    }
+
+    async function deleteUser(quickUsername) {
+      const key = document.getElementById('adminKey').value.trim();
+      const username = quickUsername || document.getElementById('targetUser').value.trim();
+      if (!key || !username) { showResult('Clé et nom d\'utilisateur requis', 'error'); return; }
+
+      try {
+        const res = await fetch(API + '/api/quiz/admin/user/' + encodeURIComponent(username) + '?key=' + encodeURIComponent(key), { method: 'DELETE' });
+        const data = await res.json();
+        if (!res.ok) { showResult('❌ ' + (data.detail || 'Erreur'), 'error'); return; }
+        showResult('✅ ' + data.message, 'success');
+      } catch(e) {
+        showResult('❌ Erreur réseau : ' + e.message, 'error');
+      }
+    }
+
+    async function listUsers() {
+      const key = document.getElementById('adminKey').value.trim();
+      if (!key) { showResult('Clé requise', 'error'); return; }
+
+      try {
+        const res = await fetch(API + '/api/quiz/admin/users?key=' + encodeURIComponent(key));
+        const data = await res.json();
+        if (!res.ok) { showResult('❌ ' + (data.detail || 'Erreur'), 'error'); return; }
+        showResult(JSON.stringify(data, null, 2), 'success');
+      } catch(e) {
+        showResult('❌ Erreur réseau : ' + e.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

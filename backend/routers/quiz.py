@@ -1663,6 +1663,20 @@ def submit_quiz(
     )
 
 
+@router.get("/admin/users")
+def admin_list_users(
+    key: str = "",
+    db: Session = Depends(get_db),
+):
+    if key != ADMIN_DELETE_KEY:
+        raise HTTPException(status_code=403, detail="Clé admin invalide")
+    users = db.query(User).all()
+    return [
+        {"id": u.id, "username": u.username, "email": u.email, "role": u.role, "highest_unlocked": u.highest_unlocked, "completed_levels": u.completed_levels}
+        for u in users
+    ]
+
+
 @router.delete("/admin/user/{username}")
 def admin_delete_user(
     username: str,
