@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from backend.services.gemini_service import gemini_quiz
 from backend.security import limiter, get_current_user
 
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
+logger = logging.getLogger(__name__)
 
 
 # --- Schémas ---
@@ -53,12 +55,33 @@ class CongratulateRequest(BaseModel):
 
 # --- Chargement des questions depuis le fichier JSON ---
 
+_FALLBACK_QUESTIONS = [
+    {"question": "Dans Naruto, quel est le nom du démon scellé en Naruto ?", "options": ["Kurama", "Shukaku", "Matatabi", "Saiken"], "correct_index": 0, "difficulty": "Junior Otaku", "category": "Naruto"},
+    {"question": "Dans One Piece, quel est le rêve de Luffy ?", "options": ["Devenir Hokage", "Trouver le One Piece et devenir Roi des Pirates", "Devenir l'épéiste le plus fort", "Dessiner le meilleur manga"], "correct_index": 1, "difficulty": "Junior Otaku", "category": "One Piece"},
+    {"question": "Quel est le nom du protagoniste d'Attack on Titan ?", "options": ["Eren Yeager", "Levi Ackerman", "Mikasa Ackerman", "Armin Arlelt"], "correct_index": 0, "difficulty": "Junior Otaku", "category": "Attack on Titan"},
+    {"question": "Dans Naruto, quel Sharingan évolue en Rinnegan ?", "options": ["Sharingan de Sasuke", "Sharingan d'Itachi", "Sharingan de Madara", "Sharingan de Kakashi"], "correct_index": 2, "difficulty": "Senior Otaku", "category": "Naruto"},
+    {"question": "Dans Demon Slayer, quel est le niveau le plus élevé des pourfendeurs ?", "options": ["Hashira", "Kinoe", "Kototo", "Hinoe"], "correct_index": 0, "difficulty": "Senior Otaku", "category": "Demon Slayer"},
+    {"question": "Dans JoJo's Bizarre Adventure, quel est le nom du stand de Dio ?", "options": ["The World", "Star Platinum", "King Crimson", "Gold Experience"], "correct_index": 0, "difficulty": "Senior Otaku", "category": "JoJo"},
+    {"question": "Quel est le nom du Super Saiyan divin ?", "options": ["Super Saiyan God", "Super Saiyan 4", "Super Saiyan Blue", "Ultra Instinct"], "correct_index": 0, "difficulty": "Master Otaku", "category": "Dragon Ball"},
+    {"question": "Dans Jujutsu Kaisen, quel est le nom du roi des fléaux ?", "options": ["Ryomen Sukuna", "Mahito", "Geto", "Kenjaku"], "correct_index": 0, "difficulty": "Master Otaku", "category": "Jujutsu Kaisen"},
+    {"question": "Quel est le nom du vrai ennemi de Madara ?", "options": ["Kaguya Otsutsuki", "Hagoromo Otsutsuki", "Zetsu", "Indra Otsutsuki"], "correct_index": 0, "difficulty": "Otaku Legendaire", "category": "Naruto"},
+    {"question": "Dans Dragon Ball, quel est le nom de la transformation la plus puissante ?", "options": ["Ultra Instinct", "Super Saiyan 4", "Super Saiyan God", "Super Saiyan Blue"], "correct_index": 0, "difficulty": "Otaku Legendaire", "category": "Dragon Ball"},
+]
+
 _QUESTIONS_FILE = Path(__file__).resolve().parent.parent.parent / "json" / "anime_quiz_questions.json"
 
 _ALL_QUESTIONS: list[dict] = []
 if _QUESTIONS_FILE.exists():
-    with open(_QUESTIONS_FILE, encoding="utf-8") as f:
-        _ALL_QUESTIONS = json.load(f)["questions"]
+    try:
+        with open(_QUESTIONS_FILE, encoding="utf-8") as f:
+            _ALL_QUESTIONS = json.load(f)["questions"]
+        logger.info("Chargé %d questions depuis %s", len(_ALL_QUESTIONS), _QUESTIONS_FILE)
+    except Exception as e:
+        logger.warning("Erreur chargement JSON: %s", e)
+
+if not _ALL_QUESTIONS:
+    _ALL_QUESTIONS = _FALLBACK_QUESTIONS
+    logger.warning("Utilisation du fallback de %d questions", len(_FALLBACK_QUESTIONS))
 
 DIFFICULTY_POINTS = {
     "Junior Otaku": 5,
@@ -79,7 +102,10 @@ def _generate_questions_data(theme: Optional[str] = None):
     pool = _ALL_QUESTIONS
     if theme:
         pool = [q for q in pool if q.get("category", "").lower() == theme.lower()]
-    questions = random.sample(pool, min(10, len(pool)))
+        if not pool:
+            pool = _ALL_QUESTIONS
+    count = min(10, len(pool))
+    questions = random.sample(pool, count) if count > 0 else []
     return questions
 
 
