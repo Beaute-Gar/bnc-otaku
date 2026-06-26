@@ -76,3 +76,31 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+
+  - type: worker
+    name: bnc-otaku-whatsapp
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m playwright install chromium --with-deps 2>/dev/null || python -m playwright install chromium
+    startCommand: python -m whatsapp_bot.render_bot
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL_MODE
+        value: REQUIRED
+      - key: DB_SSL_CA
+        sync: false
+      - key: SITE_URL
+        sync: false

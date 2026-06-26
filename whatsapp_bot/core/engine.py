@@ -14,10 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class WhatsAppEngine:
+    """Moteur WhatsApp Web via Playwright avec persistance session."""
 
-    def __init__(self, session_dir: str):
+    def __init__(self, session_dir: str, headless: bool = False, session_manager=None):
         self.session_dir = Path(session_dir)
         self.session_dir.mkdir(parents=True, exist_ok=True)
+        self._headless = headless
+        self._session_manager = session_manager
         self._playwright = None
         self._context: Optional[BrowserContext] = None
         self._page: Optional[Page] = None
@@ -25,9 +28,22 @@ class WhatsAppEngine:
 
     async def launch(self):
         self._playwright = await async_playwright().start()
+
+        # Restaurer la session depuis la BDD avant de lancer Chrome
+        if self._session_manager:
+            temp_ctx = await self._playwright.chromium.launch_persistent_context(
+                user_data_dir=str(self.session_dir),
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"],
+            )
+            restored = await self._session_manager.restore(temp_ctx)
+            await temp_ctx.close()
+            if restored:
+                logger.info("✅ Session restaurée depuis BDD")
+
         self._context = await self._playwright.chromium.launch_persistent_context(
             user_data_dir=str(self.session_dir),
-            headless=False,
+            headless=self._headless,
             args=[
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
@@ -41,6 +57,23 @@ class WhatsAppEngine:
             ),
         )
         self._page = self._context.pages[0] if self._context.pages else await self._context.new_page()
+
+        # Restaurer localStorage si présent
+        if self._session_manager:
+            try:
+                row = await self._session_manager._get_raw_session()
+                if row:
+                    import json, base64
+                    data = json.loads(base64.b64decode(row["session_data"]).decode())
+                    ls = data.get("local_storage", {})
+                    for key, val in ls.items():
+                        try:
+                            await self._page.evaluate(f"window.localStorage.setItem('{key}', '{val}')")
+                        except Exception:
+                            pass
+                    logger.debug(f"localStorage restauré ({len(ls)} entrées)")
+            except Exception:
+                pass
 
     async def connect(self) -> bool:
         logger.info("📱 Ouverture WhatsApp Web...")
@@ -59,14 +92,23 @@ class WhatsAppEngine:
 
             if el_id == "chat-list":
                 logger.success("✅ Session restaurée !")
+                # Sauvegarder la session en BDD pour les prochains démarrages
+                if self._session_manager:
+                    await self._session_manager.save(self._page)
                 return True
             else:
                 logger.warning(f"📷 QR code affiché — scanne avec WhatsApp ({settings.QR_TIMEOUT}s)")
                 await self._page.wait_for_selector(chat_selector, timeout=settings.QR_TIMEOUT * 1000)
                 logger.success("✅ QR scanné — connecté !")
+                # Sauvegarder la session après connexion
+                if self._session_manager:
+                    await self._session_manager.save(self._page)
                 return True
 
         except Exception as e:
+            if self._headless:
+                # En mode headless : tenter la restauration BDD
+                logger.warning(f"⚠️ Connexion headless échouée, tentative restauration BDD...")
             logger.error(f"❌ Connexion échouée : {e}")
             return False
 
@@ -94,6 +136,7 @@ class WhatsAppEngine:
             obs.observe(chat, {childList: true, subtree: true});
         """)
 
+        save_interval = 0
         while True:
             try:
                 msgs = await self._page.evaluate("""
@@ -103,6 +146,13 @@ class WhatsAppEngine:
                     msg = self._parse_raw(raw)
                     if msg:
                         asyncio.create_task(callback(msg))
+
+                # Sauvegarder la session toutes les ~5 minutes
+                save_interval += 1
+                if save_interval >= 150 and self._session_manager:
+                    await self._session_manager.save(self._page)
+                    save_interval = 0
+
             except Exception as e:
                 logger.warning(f"⚠️ Boucle écoute : {e}")
             await asyncio.sleep(2)
