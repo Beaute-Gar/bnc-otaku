@@ -61,3 +61,16 @@ function updateNavbar() {
 }
 
 document.addEventListener('DOMContentLoaded', updateNavbar);
+
+// Tracking des clics sur les boutons Telegram/WhatsApp
+document.addEventListener('click', e => {
+  const a = e.target.closest('a');
+  if (!a) return;
+  const href = a.getAttribute('href') || '';
+  let platform = '';
+  if (href.includes('t.me/BNC_Otaku_Bot')) platform = 'telegram';
+  else if (href.includes('wa.me/237659809751')) platform = 'whatsapp';
+  if (platform) {
+    fetch('/api/admin/referral/click?platform=' + platform, { method: 'POST' }).catch(() => {});
+  }
+});

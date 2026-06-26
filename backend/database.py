@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from backend.config import settings
+import backend.models.admin  # noqa: ensure tables are created
+import backend.models.quiz  # noqa
 
 engine = create_engine(
     settings.database_url,

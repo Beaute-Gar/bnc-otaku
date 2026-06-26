@@ -39,7 +39,7 @@ function showAdGate() {
 
     if (timerEl) timerEl.textContent = countdown;
 
-    fetch('/api/ad/view', { method: 'POST', headers: {'Content-Type':'application/json'} })
+    fetch('/api/admin/ad/view', { method: 'POST', headers: {'Content-Type':'application/json'} })
       .catch(() => {});
 
     const interval = setInterval(() => {

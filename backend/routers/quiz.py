@@ -1438,7 +1438,7 @@ DIFFICULTY_POINTS = {
     "Otaku Legendaire": 20,
 }
 
-ADMIN_DELETE_KEY = "bnc-admin-2026"
+
 
 LEVEL_THRESHOLDS = [
     (90, "SS"),
@@ -1662,47 +1662,6 @@ def submit_quiz(
         correct=correct_count,
         details=details,
     )
-
-
-@router.get("/admin/users")
-def admin_list_users(
-    key: str = "",
-    db: Session = Depends(get_db),
-):
-    if key != ADMIN_DELETE_KEY:
-        raise HTTPException(status_code=403, detail="Clé admin invalide")
-    try:
-        users = db.query(User).all()
-        return [
-            {
-                "id": u.id, "username": u.username, "email": u.email, "role": u.role,
-                "highest_unlocked": getattr(u, "highest_unlocked", "Junior Otaku"),
-                "completed_levels": getattr(u, "completed_levels", "[]"),
-            }
-            for u in users
-        ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur base de données: {str(e)}")
-
-
-@router.delete("/admin/user/{username}")
-def admin_delete_user(
-    username: str,
-    key: str = "",
-    db: Session = Depends(get_db),
-):
-    if key != ADMIN_DELETE_KEY:
-        raise HTTPException(status_code=403, detail="Clé admin invalide")
-    try:
-        user = db.query(User).filter(User.username == username).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Utilisateur introuvable")
-        db.delete(user)
-        return {"message": f"Utilisateur '{username}' supprimé"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur suppression: {str(e)}")
 
 
 @router.post("/congratulate")
