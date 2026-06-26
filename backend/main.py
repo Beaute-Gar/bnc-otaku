@@ -4,6 +4,8 @@ Point d'entrée de l'application.
 Orchestre les routers, la DB, les bots, et le dashboard temps réel.
 """
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
@@ -18,15 +20,34 @@ from backend.security import limiter
 from backend.routers import quiz, auth, webhooks, certificate, payment
 from backend.services.payment_service import seed_products
 
+logger = logging.getLogger(__name__)
+
+
+class SimpleManager:
+    async def on_message_received(self, platform: str, sender: str, text: str):
+        logger.info(f"[{platform}] {sender}: {text}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan manager : init DB au démarrage, cleanup à l'arrêt."""
+    """Lifespan manager : init DB, bots, cleanup à l'arrêt."""
     init_db()
     with session_factory() as session:
         seed_products(session)
         session.commit()
+
+    bot_handler = None
+    if settings.telegram_bot_token:
+        from bots.telegram_handler import TelegramBotHandler
+        bot_handler = TelegramBotHandler(SimpleManager())
+        asyncio.create_task(bot_handler.start())
+        logger.info("Bot Telegram demarré en arrière-plan")
+
     yield
+
+    if bot_handler:
+        await bot_handler.stop()
+        logger.info("Bot Telegram arrêté")
 
 
 app = FastAPI(
