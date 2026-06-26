@@ -124,6 +124,11 @@ async function showResults() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Erreur soumission');
 
+    // Ad-gate avant d'afficher les résultats
+    document.getElementById('resultScreen').style.display = 'none';
+    await showAdGate();
+    document.getElementById('adGateScreen').style.display = 'none';
+
     const pct = data.score;
     let level, emoji;
     if (pct >= 90) { level = 'Otaku Légendaire'; emoji = '👑'; }
