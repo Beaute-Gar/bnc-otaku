@@ -21,10 +21,60 @@
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--primary);
+  background: transparent !important;
   color: var(--text);
   min-height: 100vh;
   line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== BACKGROUND VIDÉO ANIMÉ ====== */
+#bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+  pointer-events: none;
+}
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: -1;
+  pointer-events: none;
+}
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -3;
+  pointer-events: none;
+}
+
+/* ====== TRANSPARENCE DES SECTIONS ====== */
+.hero, .stats, .levels, .anime-gallery, .verification,
+.gov-footer, .quiz-container, .result-card, .ad-gate__card,
+.contact-page, .page-premium, .auth-card, .welcome-modal__card {
+  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  margin: 1rem auto;
+  padding: 2rem;
+  max-width: 1100px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+.gov-header {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 /* ====== HEADER GOUVERNEMENTAL ====== */
