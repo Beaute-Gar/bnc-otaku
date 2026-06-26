@@ -84,9 +84,10 @@ async function downloadCertificate() {
   ctx.font = '14px serif';
   ctx.fillText(`Délivré le ${today}`, 400, 540);
 
-  ctx.font = '12px serif';
+  ctx.font = '11px serif';
   ctx.fillStyle = '#666';
-  ctx.fillText('Ce certificat est délivré par le BNC-Otaku. Vérifiable sur bnc-otaku.cm', 400, 570);
+  ctx.fillText('Système d\'Évaluation Autonome BNC-Otaku v2.0 — Développé par Djousse Tech Evolution', 400, 560);
+  ctx.fillText('© 2026 Djousse Tech Evolution. Tous droits réservés.', 400, 575);
 
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
