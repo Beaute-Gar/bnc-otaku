@@ -196,15 +196,11 @@ def track_ad_view(request: Request, db: Session = Depends(get_db)):
 @router.post("/referral/click")
 def track_referral_click(
     platform: str = "",
-    request: Request = None,
     db: Session = Depends(get_db),
 ):
     if platform not in ("telegram", "whatsapp"):
         raise HTTPException(status_code=400, detail="Plateforme invalide")
-    click = ReferralClick(
-        platform=platform,
-        ip_address=request.client.host if request and request.client else None,
-    )
+    click = ReferralClick(platform=platform)
     db.add(click)
     return {"status": "ok"}
 

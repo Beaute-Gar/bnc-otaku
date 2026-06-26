@@ -11,7 +11,6 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from backend.config import settings
@@ -59,7 +58,12 @@ app = FastAPI(
 
 # --- Rate Limiting ---
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+async def _rate_limit_handler(request, exc):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=429, content={"detail": "Trop de requêtes. Réessaie dans quelques instants."})
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
 
 # --- CORS ---
 app.add_middleware(

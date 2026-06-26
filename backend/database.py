@@ -1,8 +1,6 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from backend.config import settings
-import backend.models.admin  # noqa: ensure tables are created
-import backend.models.quiz  # noqa
 
 engine = create_engine(
     settings.database_url,
@@ -29,6 +27,11 @@ def get_db():
         raise
     finally:
         db.close()
+
+
+# Importer les modèles APRÈS Base pour éviter l'import circulaire
+import backend.models.admin  # noqa
+import backend.models.quiz  # noqa
 
 
 def init_db():

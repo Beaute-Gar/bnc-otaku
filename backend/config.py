@@ -24,15 +24,10 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        driver = "mysql+pymysql" if self.db_ssl_mode == "REQUIRED" else "mysql+aiomysql"
-        url = f"{driver}://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
+        url = f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
         if self.db_ssl_mode == "REQUIRED" and self.db_ssl_ca:
             url += f"&ssl_ca={self.db_ssl_ca.replace(chr(92), '/')}"
         return url
-
-    @property
-    def use_sync_db(self) -> bool:
-        return self.db_ssl_mode == "REQUIRED"
 
     # --- API Security ---
     api_secret_key: str = "change-me-pls"
