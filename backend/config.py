@@ -19,10 +19,15 @@ class Settings(BaseSettings):
     db_user: str = "bnc_otaku_user"
     db_password: str = ""
     db_name: str = "bnc_otaku_db"
+    db_ssl_ca: str = ""  # Chemin vers le certificat CA (Aiven/Render)
+    db_ssl_mode: str = "DISABLED"  # "DISABLED" ou "REQUIRED"
 
     @property
     def database_url(self) -> str:
-        return f"mysql+aiomysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
+        ssl = ""
+        if self.db_ssl_mode == "REQUIRED" and self.db_ssl_ca:
+            ssl = f"&ssl_ca={self.db_ssl_ca}"
+        return f"mysql+aiomysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4{ssl}"
 
     # --- API Security ---
     api_secret_key: str = "change-me-pls"
