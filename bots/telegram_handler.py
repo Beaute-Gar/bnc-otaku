@@ -80,6 +80,11 @@ class TelegramBotHandler:
 
     # --- Handlers ---
 
+    AD_LINK = "https://www.effectivecpmnetwork.com/twsbtg6q?key=6797310e4f2eaa565dbbf4fde2b8cb8b"
+
+    def _sponsor(self) -> str:
+        return f"\n\n📢 *Sponsor* — [Découvrir]({self.AD_LINK})"
+
     def _site_url(self, path: str = "") -> str:
         url = settings.frontend_url.rstrip("/")
         return f"{url}{path}"
@@ -99,7 +104,8 @@ class TelegramBotHandler:
             "• `/partager` — Gagner le niveau Légendaire\n"
             "• `/site` — Lien direct vers le site\n"
             "• `/aide` — Voir cette aide\n\n"
-            f"🌐 *Site officiel :* [Clique ici]({self._site_url()})",
+            f"🌐 *Site officiel :* [Clique ici]({self._site_url()})"
+            f"{self._sponsor()}",
             parse_mode="Markdown",
         )
 
@@ -109,7 +115,8 @@ class TelegramBotHandler:
             f"Tu peux passer l'examen ici :\n"
             f"🔗 {self._site_url('/quiz.html')}\n\n"
             "10 questions générées par IA avec 4 niveaux (facile → légendaire).\n"
-            "Tu dois être connecté pour commencer.",
+            "Tu dois être connecté pour commencer."
+            f"{self._sponsor()}",
             parse_mode="Markdown",
         )
 
@@ -142,7 +149,8 @@ class TelegramBotHandler:
             "• *Pack Légendaire* — 1000 FCFA\n"
             "• *Code Parrain* — 300 FCFA\n\n"
             f"🔗 {self._site_url('/premium.html')}\n\n"
-            "Paiement Mobile Money (MTN/Orange).",
+            "Paiement Mobile Money (MTN/Orange)."
+            f"{self._sponsor()}",
             parse_mode="Markdown",
         )
 
@@ -205,7 +213,8 @@ class TelegramBotHandler:
             f"📝 *Examens complétés :* {total_exams}\n"
             f"🎓 *Certificats délivrés :* {total_certs}\n"
             f"🏆 *Légendaires :* {legendary}\n\n"
-            f"🌐 {self._site_url()}",
+            f"🌐 {self._site_url()}"
+            f"{self._sponsor()}",
             parse_mode="Markdown",
         )
 
