@@ -12,6 +12,11 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 from backend.config import settings
+from backend.database import session_factory
+from backend.models.user import User
+from backend.models.quiz import ExamSession
+from backend.models.certificate import Certificate
+from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +44,10 @@ class TelegramBotHandler:
         self.app.add_handler(CommandHandler("certificat", self._cmd_certificat))
         self.app.add_handler(CommandHandler("inscription", self._cmd_inscription))
         self.app.add_handler(CommandHandler("premium", self._cmd_premium))
+        self.app.add_handler(CommandHandler("profil", self._cmd_profil))
+        self.app.add_handler(CommandHandler("stats", self._cmd_stats))
+        self.app.add_handler(CommandHandler("top", self._cmd_top))
+        self.app.add_handler(CommandHandler("partager", self._cmd_partager))
         self.app.add_handler(CommandHandler("site", self._cmd_site))
         self.app.add_handler(CommandHandler("aide", self._cmd_aide))
 
@@ -81,9 +90,13 @@ class TelegramBotHandler:
             "Je suis le bot officiel du Bureau National de Certification Otaku.\n\n"
             "*Commandes disponibles :*\n"
             "• `/examen` — Lancer l'examen de certification\n"
+            "• `/profil` — Voir mon profil otaku\n"
             "• `/certificat` — Vérifier un diplôme\n"
             "• `/inscription` — Créer un compte\n"
             "• `/premium` — Voir les offres premium\n"
+            "• `/stats` — Statistiques globales\n"
+            "• `/top` — Meilleurs otakus\n"
+            "• `/partager` — Gagner le niveau Légendaire\n"
             "• `/site` — Lien direct vers le site\n"
             "• `/aide` — Voir cette aide\n\n"
             f"🌐 *Site officiel :* [Clique ici]({self._site_url()})",
@@ -132,6 +145,105 @@ class TelegramBotHandler:
             "Paiement Mobile Money (MTN/Orange).",
             parse_mode="Markdown",
         )
+
+    async def _cmd_profil(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        args = context.args
+        if not args:
+            await update.message.reply_text(
+                "👤 *Mon Profil Otaku*\n\n"
+                "Envoie `/profil ton_pseudo` pour voir ton profil.\n"
+                "Exemple : `/profil naruto_fan`",
+                parse_mode="Markdown",
+            )
+            return
+        username = args[0]
+        with session_factory() as db:
+            user = db.query(User).filter(User.username == username).first()
+            if not user:
+                await update.message.reply_text(
+                    f"❌ Aucun utilisateur trouvé avec le pseudo `{username}`",
+                    parse_mode="Markdown",
+                )
+                return
+            exams = db.query(ExamSession).filter(
+                ExamSession.user_id == user.id,
+                ExamSession.status == "completed",
+            ).all()
+            total_exams = len(exams)
+            best = db.query(ExamSession).filter(
+                ExamSession.user_id == user.id,
+                ExamSession.status == "completed",
+            ).order_by(ExamSession.score.desc()).first()
+            best_level = best.level if best else "Aucun"
+            certs = db.query(Certificate).filter(
+                Certificate.user_id == user.id
+            ).count()
+        await update.message.reply_text(
+            f"👤 *Mon Profil Otaku*\n\n"
+            f"📛 *Nom :* {user.full_name or '-'}\n"
+            f"🆔 *Pseudo :* `{user.username}`\n"
+            f"🏆 *Meilleur niveau :* {best_level}\n"
+            f"📊 *Examens passés :* {total_exams}\n"
+            f"🎓 *Certificats :* {certs}\n"
+            f"📅 *Membre depuis :* {user.created_at.strftime('%d/%m/%Y') if user.created_at else '-'}",
+            parse_mode="Markdown",
+        )
+
+    async def _cmd_stats(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        with session_factory() as db:
+            total_users = db.query(User).count()
+            total_exams = db.query(ExamSession).filter(
+                ExamSession.status == "completed"
+            ).count()
+            total_certs = db.query(Certificate).count()
+            legendary = db.query(ExamSession).filter(
+                ExamSession.level == "legendary"
+            ).count()
+        await update.message.reply_text(
+            "📊 *Statistiques BNC-Otaku*\n\n"
+            f"👥 *Utilisateurs inscrits :* {total_users}\n"
+            f"📝 *Examens complétés :* {total_exams}\n"
+            f"🎓 *Certificats délivrés :* {total_certs}\n"
+            f"🏆 *Légendaires :* {legendary}\n\n"
+            f"🌐 {self._site_url()}",
+            parse_mode="Markdown",
+        )
+
+    async def _cmd_top(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        with session_factory() as db:
+            top = db.query(
+                User.username, User.full_name, ExamSession.score, ExamSession.level
+            ).join(ExamSession, User.id == ExamSession.user_id).filter(
+                ExamSession.status == "completed"
+            ).order_by(ExamSession.score.desc()).limit(10).all()
+        if not top:
+            await update.message.reply_text(
+                "🏆 *Classement Otaku*\n\n"
+                "Aucun examen complété pour le moment.\n"
+                f"Sois le premier ! {self._site_url('/quiz.html')}",
+                parse_mode="Markdown",
+            )
+            return
+        lines = ["🏆 *Top 10 Meilleurs Otakus*\n"]
+        for i, (uname, fname, score, level) in enumerate(top, 1):
+            medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
+            name = fname or uname
+            lines.append(f"{medal} *{name}* — {score}% ({level})")
+        lines.append(f"\n🌐 {self._site_url()}")
+        await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
+
+    async def _cmd_partager(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        site = self._site_url()
+        msg = (
+            "🎯 *Deviens un Otaku Légendaire !*\n\n"
+            "Invite tes amis à passer l'examen BNC-Otaku.\n"
+            "Plus vous êtes nombreux, plus tu gagnes en notoriété !\n\n"
+            f"🔗 *Lien du site :* {site}\n"
+            f"🤖 *Lien du bot :* https://t.me/BNC_Otaku_Bot\n\n"
+            "Partage ce message avec tes amis et atteignez "
+            "ensemble le niveau **Légendaire** ! 🏆"
+        )
+        await update.message.reply_text(msg, parse_mode="Markdown")
 
     async def _cmd_site(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
