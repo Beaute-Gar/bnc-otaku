@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, Enum, DateTime, func
 from backend.database import Base
 
 
@@ -14,3 +14,5 @@ class User(Base):
     is_active = Column(Integer, default=1)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    highest_unlocked = Column(String(30), default="Junior Otaku")
+    completed_levels = Column(Text, default="[]")

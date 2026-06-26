@@ -382,6 +382,70 @@ body {
   color: var(--accent);
 }
 
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem auto;
+  max-width: 900px;
+}
+.level-grid .level-card {
+  cursor: pointer;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid rgba(255,255,255,0.15);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.level-grid .level-card.unlocked:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: var(--gold);
+  box-shadow: 0 0 25px rgba(255,215,0,0.3);
+}
+.level-grid .level-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+.level-grid .level-card.completed {
+  border-color: var(--success);
+  box-shadow: 0 0 15px rgba(76,175,80,0.3);
+}
+.level-card__emoji {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+.level-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+.level-card__desc {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+.level-card__status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  display: inline-block;
+}
+.level-grid .level-card.completed .level-card__status {
+  background: rgba(76,175,80,0.3);
+  color: var(--success);
+}
+.level-grid .level-card.locked .level-card__status {
+  background: rgba(244,67,54,0.2);
+  color: var(--error);
+}
+.quiz-intro__progress {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
 .quiz-intro__theme {
   margin-bottom: 2rem;
 }

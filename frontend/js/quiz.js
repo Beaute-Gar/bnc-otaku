@@ -5,6 +5,14 @@ let answers = [];
 let score = 0;
 let correctCount = 0;
 let totalPoints = 0;
+let currentLevel = '';
+
+const LEVELS = [
+  { key: 'Junior Otaku', emoji: '🌟', color: '#4caf50', desc: 'Les bases de la culture otaku' },
+  { key: 'Senior Otaku', emoji: '⭐', color: '#ff9800', desc: 'Connaissances approfondies' },
+  { key: 'Master Otaku', emoji: '🏆', color: '#f44336', desc: 'Maîtrise des univers' },
+  { key: 'Otaku Legendaire', emoji: '👑', color: '#9c27b0', desc: 'Légende vivante' },
+];
 
 const DIFFICULTY_COLORS = {
   'Junior Otaku': '#4caf50',
@@ -23,7 +31,6 @@ let angerOverlay = null;
 
 function initAngerFeature() {
   if (document.getElementById('anger-overlay')) return;
-
   angerOverlay = document.createElement('div');
   angerOverlay.id = 'anger-overlay';
   angerOverlay.style.cssText = `
@@ -37,40 +44,20 @@ function initAngerFeature() {
     flex-direction: column;
     cursor: pointer;
   `;
-
   const user = getUser();
   const initial = user && user.username ? user.username.charAt(0).toUpperCase() : 'O';
   const chars = {
-    A: { name: 'Arale', emoji: '👧' },
-    B: { name: 'Bulma', emoji: '👩' },
-    C: { name: 'Chopper', emoji: '🦌' },
-    D: { name: 'Deku', emoji: '🧑' },
-    E: { name: 'Eren', emoji: '⚔' },
-    F: { name: 'Frieren', emoji: '🧙' },
-    G: { name: 'Goku', emoji: '🐉' },
-    H: { name: 'Hinata', emoji: '👧' },
-    I: { name: 'Itachi', emoji: '🗡' },
-    J: { name: 'Jotaro', emoji: '👊' },
-    K: { name: 'Kirito', emoji: '⚔' },
-    L: { name: 'Lelouch', emoji: '👑' },
-    M: { name: 'Mikasa', emoji: '⚔' },
-    N: { name: 'Naruto', emoji: '🍜' },
-    O: { name: 'Obito', emoji: '🌀' },
-    P: { name: 'Pikachu', emoji: '⚡' },
-    Q: { name: 'Quatre', emoji: '👦' },
-    R: { name: 'Rukia', emoji: '👩' },
-    S: { name: 'Sasuke', emoji: '🗡' },
-    T: { name: 'Tanjiro', emoji: '⚔' },
-    U: { name: 'Usopp', emoji: '🎯' },
-    V: { name: 'Vegeta', emoji: '💪' },
-    W: { name: 'Watari', emoji: '👴' },
-    X: { name: 'Xenovia', emoji: '⚔' },
-    Y: { name: 'Yoruichi', emoji: '🐱' },
-    Z: { name: 'Zoro', emoji: '⚔' },
+    A: { name: 'Arale', emoji: '👧' }, B: { name: 'Bulma', emoji: '👩' }, C: { name: 'Chopper', emoji: '🦌' },
+    D: { name: 'Deku', emoji: '🧑' }, E: { name: 'Eren', emoji: '⚔' }, F: { name: 'Frieren', emoji: '🧙' },
+    G: { name: 'Goku', emoji: '🐉' }, H: { name: 'Hinata', emoji: '👧' }, I: { name: 'Itachi', emoji: '🗡' },
+    J: { name: 'Jotaro', emoji: '👊' }, K: { name: 'Kirito', emoji: '⚔' }, L: { name: 'Lelouch', emoji: '👑' },
+    M: { name: 'Mikasa', emoji: '⚔' }, N: { name: 'Naruto', emoji: '🍜' }, O: { name: 'Obito', emoji: '🌀' },
+    P: { name: 'Pikachu', emoji: '⚡' }, Q: { name: 'Quatre', emoji: '👦' }, R: { name: 'Rukia', emoji: '👩' },
+    S: { name: 'Sasuke', emoji: '🗡' }, T: { name: 'Tanjiro', emoji: '⚔' }, U: { name: 'Usopp', emoji: '🎯' },
+    V: { name: 'Vegeta', emoji: '💪' }, W: { name: 'Watari', emoji: '👴' }, X: { name: 'Xenovia', emoji: '⚔' },
+    Y: { name: 'Yoruichi', emoji: '🐱' }, Z: { name: 'Zoro', emoji: '⚔' },
   };
-
   const char = chars[initial] || { name: 'Sensei', emoji: '👨' };
-
   angerOverlay.innerHTML = `
     <div style="text-align:center;animation:angerPulse 1s infinite alternate;">
       <div style="font-size:6rem;line-height:1;">${char.emoji}</div>
@@ -85,44 +72,24 @@ function initAngerFeature() {
       </div>
     </div>
   `;
-
-  angerOverlay.addEventListener('click', () => {
-    hideAnger();
-  });
-
+  angerOverlay.addEventListener('click', () => { hideAnger(); });
   document.body.appendChild(angerOverlay);
-
   const styleSheet = document.createElement('style');
-  styleSheet.textContent = `
-    @keyframes angerPulse {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.05); }
-    }
-  `;
+  styleSheet.textContent = `@keyframes angerPulse { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }`;
   document.head.appendChild(styleSheet);
 }
 
-function showAnger() {
-  if (angerOverlay) angerOverlay.style.display = 'flex';
-}
-
-function hideAnger() {
-  if (angerOverlay) angerOverlay.style.display = 'none';
-}
+function showAnger() { if (angerOverlay) angerOverlay.style.display = 'flex'; }
+function hideAnger() { if (angerOverlay) angerOverlay.style.display = 'none'; }
 
 function resetAngerTimer() {
   if (angerTimer) clearTimeout(angerTimer);
   hideAnger();
-  angerTimer = setTimeout(() => {
-    showAnger();
-  }, 15000);
+  angerTimer = setTimeout(() => { showAnger(); }, 15000);
 }
 
 function clearAngerTimer() {
-  if (angerTimer) {
-    clearTimeout(angerTimer);
-    angerTimer = null;
-  }
+  if (angerTimer) { clearTimeout(angerTimer); angerTimer = null; }
   hideAnger();
 }
 
@@ -131,7 +98,6 @@ function updateProgress() {
   const pct = total > 0 ? Math.round((currentIndex / total) * 100) : 0;
   const bar = document.getElementById('quizProgressBar');
   if (bar) {
-    bar.style.setProperty('--progress', `${pct}%`);
     bar.style.background = `linear-gradient(90deg, var(--success), var(--gold), var(--accent))`;
     bar.style.backgroundSize = `${pct}% 100%`;
     bar.style.backgroundRepeat = 'no-repeat';
@@ -140,21 +106,61 @@ function updateProgress() {
   document.getElementById('quizProgressText').textContent = `${pct}%`;
 }
 
-async function startQuiz() {
+// Charger progression utilisateur et afficher la grille
+async function loadProgress() {
+  const grid = document.getElementById('levelGrid');
+  const progressText = document.getElementById('userProgressText');
   if (!requireAuth()) return;
 
-  // Arrêter l'opening brusquement
-  if (window._bncAudio) {
-    window._bncAudio.stop();
+  try {
+    const res = await apiFetch('/api/quiz/progress', { method: 'GET' });
+    if (!res.ok) throw new Error('Erreur chargement progression');
+    const data = await res.json();
+
+    const unlocked = data.highest_unlocked || 'Junior Otaku';
+    const completed = data.completed_levels || [];
+
+    progressText.textContent = `Progression : ${completed.length}/4 niveaux complétés`;
+
+    grid.innerHTML = '';
+    LEVELS.forEach((lvl, i) => {
+      const isUnlocked = LEVELS.findIndex(l => l.key === unlocked) >= i;
+      const isCompleted = completed.includes(lvl.key);
+
+      const card = document.createElement('div');
+      card.className = 'level-card' + (isUnlocked ? ' unlocked' : ' locked') + (isCompleted ? ' completed' : '');
+      card.innerHTML = `
+        <div class="level-card__emoji">${isCompleted ? '✅' : (isUnlocked ? lvl.emoji : '🔒')}</div>
+        <h3 class="level-card__title">${lvl.key}</h3>
+        <p class="level-card__desc">${lvl.desc}</p>
+        <span class="level-card__status">${isCompleted ? 'Réussi ✓' : (isUnlocked ? 'Disponible' : 'Verrouillé')}</span>
+      `;
+      if (isUnlocked) {
+        card.onclick = () => startQuiz(lvl.key);
+      }
+      grid.appendChild(card);
+    });
+
+    // Jouer l'opening
+    if (window._bncAudio) window._bncAudio.playOpening();
+  } catch (err) {
+    progressText.textContent = 'Erreur de chargement. Recharge la page.';
+    progressText.style.color = 'var(--error)';
   }
+}
+
+async function startQuiz(level) {
+  if (!requireAuth()) return;
+
+  if (window._bncAudio) window._bncAudio.stop();
 
   const intro = document.getElementById('quizIntro');
   const quizScreen = document.getElementById('quizScreen');
-  const theme = document.getElementById('themeInput').value.trim();
   intro.style.display = 'none';
+  currentLevel = level;
 
   try {
-    const url = theme ? `/api/quiz/start?theme=${encodeURIComponent(theme)}` : '/api/quiz/start';
+    const url = `/api/quiz/start?difficulty=${encodeURIComponent(level)}`;
     const res = await apiFetch(url, { method: 'POST' });
     if (!res.ok) {
       const err = await res.json();
@@ -181,9 +187,7 @@ async function startQuiz() {
     showQuestion(0);
   } catch (err) {
     intro.style.display = 'block';
-    intro.innerHTML += `<p class="error" style="color:var(--error);margin-top:1rem;">
-      ❌ Erreur de chargement : ${err.message}
-    </p>`;
+    alert('❌ Erreur : ' + err.message);
   }
 }
 
@@ -192,24 +196,19 @@ function showQuestion(index) {
     showResults();
     return;
   }
-
   const q = questions[index];
   document.getElementById('questionCounter').textContent = `Question ${index + 1}/${questions.length}`;
   document.getElementById('questionText').textContent = q.question;
   document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
 
-  const badge = document.getElementById('difficultyBadge');
-  badge.textContent = q.difficulty;
-  badge.style.background = DIFFICULTY_COLORS[q.difficulty] || '#666';
+  const badge = document.getElementById('levelBadge');
+  badge.textContent = currentLevel;
+  badge.style.background = DIFFICULTY_COLORS[currentLevel] || '#666';
 
-  // Changer la musique selon la difficulté
-  if (window._bncAudio) {
-    window._bncAudio.playQuizMusic(q.difficulty);
-  }
+  if (window._bncAudio) window._bncAudio.playQuizMusic(currentLevel);
 
   const container = document.getElementById('optionsContainer');
   container.innerHTML = '';
-
   const labels = ['A', 'B', 'C', 'D'];
   q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
@@ -219,33 +218,25 @@ function showQuestion(index) {
     btn.dataset.index = i;
     container.appendChild(btn);
   });
-
   document.getElementById('nextBtn').style.display = 'none';
-
-  // Lancer le timer du personnage fâché
   resetAngerTimer();
 }
 
 function selectOption(index) {
   const buttons = document.querySelectorAll('.option-btn');
   const q = questions[currentIndex];
-
   buttons.forEach((btn, i) => {
     btn.disabled = true;
     if (i === index) btn.classList.add('selected');
   });
-
   answers.push(index);
   score += getDifficultyPoints(q.difficulty);
   correctCount++;
-
   document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
-
   document.getElementById('nextBtn').style.display = 'inline-block';
   if (currentIndex === questions.length - 1) {
     document.getElementById('nextBtn').textContent = '🎓 Voir mes Résultats';
   }
-
   clearAngerTimer();
 }
 
@@ -257,20 +248,14 @@ function nextQuestion() {
   } else {
     document.getElementById('quizProgressText').textContent = '100%';
     const bar = document.getElementById('quizProgressBar');
-    if (bar) {
-      bar.style.backgroundSize = '100% 100%';
-    }
+    if (bar) bar.style.backgroundSize = '100% 100%';
     showResults();
   }
 }
 
 async function showResults() {
   document.getElementById('quizScreen').style.display = 'none';
-
-  // Arrêter la musique du quiz
-  if (window._bncAudio) {
-    window._bncAudio.stop();
-  }
+  if (window._bncAudio) window._bncAudio.stop();
 
   try {
     const res = await apiFetch('/api/quiz/submit', {
@@ -285,14 +270,16 @@ async function showResults() {
     document.getElementById('adGateScreen').style.display = 'none';
 
     const pct = data.score;
-    let level, emoji, grade;
-    if (pct >= 90) { level = 'Otaku Légendaire'; grade = 'SS'; emoji = '👑'; }
-    else if (pct >= 75) { level = 'Master Otaku'; grade = 'S'; emoji = '🏆'; }
-    else if (pct >= 55) { level = 'Senior Otaku'; grade = 'A'; emoji = '⭐'; }
-    else { level = 'Junior Otaku'; grade = 'B'; emoji = '🌟'; }
+    let grade, emoji;
+    if (pct >= 90) { grade = 'SS'; emoji = '👑'; }
+    else if (pct >= 75) { grade = 'S'; emoji = '🏆'; }
+    else if (pct >= 55) { grade = 'A'; emoji = '⭐'; }
+    else { grade = 'B'; emoji = '🌟'; }
+
+    const passed = pct >= 55;
 
     document.getElementById('resultEmoji').textContent = emoji;
-    document.getElementById('resultLevel').textContent = `${level} [Grade ${grade}]`;
+    document.getElementById('resultLevel').textContent = `${currentLevel} — Grade ${grade}${passed ? ' ✓ Réussi' : ' ✗ Échec'}`;
     document.getElementById('resultScoreText').textContent = `${pct}%`;
     document.getElementById('resultBarFill').style.width = `${pct}%`;
 
@@ -310,10 +297,10 @@ async function showResults() {
       document.getElementById('resultMessage').textContent = msg.message;
     } catch {
       document.getElementById('resultMessage').textContent =
-        `Félicitations ! Tu as obtenu le niveau ${level} avec ${pct}% de bonnes réponses !`;
+        `${passed ? 'Félicitations' : 'Dommage'} ! Tu as obtenu ${pct}% au niveau ${currentLevel}.${passed ? ' Le niveau suivant est débloqué !' : ' Réessaie pour passer au niveau supérieur.'}`;
     }
 
-    window._bncResult = { level, score: pct, emoji, sessionId };
+    window._bncResult = { level: currentLevel, score: pct, emoji, sessionId };
     document.getElementById('resultScreen').style.display = 'block';
   } catch (err) {
     document.getElementById('resultScreen').style.display = 'block';
@@ -329,14 +316,9 @@ async function generateCertificate() {
   document.getElementById('resultScreen').style.display = 'none';
   await showAdGate();
   document.getElementById('adGateScreen').style.display = 'none';
-  if (typeof downloadCertificate === 'function') {
-    downloadCertificate();
-  }
+  if (typeof downloadCertificate === 'function') downloadCertificate();
 }
 
-// Jouer l'opening au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
-  if (window._bncAudio) {
-    window._bncAudio.playOpening();
-  }
+  loadProgress();
 });

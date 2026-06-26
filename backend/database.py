@@ -31,15 +31,21 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(engine)
-    # Migration : passer difficulty de ENUM à VARCHAR(30)
     try:
         with engine.connect() as conn:
+            # Migrations
             conn.execute(
                 text("ALTER TABLE quiz_questions MODIFY difficulty VARCHAR(30) NOT NULL")
             )
             conn.execute(
                 text("ALTER TABLE exam_sessions MODIFY level VARCHAR(30) DEFAULT NULL")
             )
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN IF NOT EXISTS highest_unlocked VARCHAR(30) DEFAULT 'Junior Otaku'")
+            )
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN IF NOT EXISTS completed_levels TEXT DEFAULT '[]'")
+            )
             conn.commit()
     except Exception:
-        pass  # Déjà migré ou table n'existe pas encore
+        pass

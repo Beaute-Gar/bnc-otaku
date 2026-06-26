@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 
@@ -14,8 +15,7 @@ from backend.security import limiter, get_current_user
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
 logger = logging.getLogger(__name__)
 
-
-# --- Schémas ---
+LEVEL_ORDER = ["Junior Otaku", "Senior Otaku", "Master Otaku", "Otaku Legendaire"]
 
 class QuestionOut(BaseModel):
     id: int
@@ -24,16 +24,14 @@ class QuestionOut(BaseModel):
     difficulty: str
     category: Optional[str] = None
 
-
 class StartResponse(BaseModel):
     session_id: int
     questions: List[QuestionOut]
-
+    level: str
 
 class SubmitRequest(BaseModel):
     session_id: int
-    answers: List[int] = Field(..., min_length=10, max_length=10)
-
+    answers: List[int] = Field(..., min_length=10, max_length=20)
 
 class SubmitResponse(BaseModel):
     score: int
@@ -42,15 +40,14 @@ class SubmitResponse(BaseModel):
     correct: int
     details: List[dict]
 
-
 class CongratulateRequest(BaseModel):
     username: str
     level: str
     score: int
 
-
-
-# --- Banque de questions officielle BNC-Otaku (115 questions) ---
+class ProgressOut(BaseModel):
+    highest_unlocked: str
+    completed_levels: List[str]
 
 _ALL_QUESTIONS = [
   {
@@ -414,6 +411,66 @@ _ALL_QUESTIONS = [
     "difficulty": "Junior Otaku"
   },
   {
+    "question": "Quel est le vrai nom de Goku ?",
+    "options": [
+      "Kakarot",
+      "Bardock",
+      "Raditz",
+      "Kakarotto"
+    ],
+    "correct_index": 0,
+    "difficulty": "Junior Otaku",
+    "category": "Dragon Ball"
+  },
+  {
+    "question": "Dans One Piece, quel est le rêve de Luffy ?",
+    "options": [
+      "Devenir Hokage",
+      "Trouver le One Piece et devenir Roi des Pirates",
+      "Devenir l'épéiste le plus fort",
+      "Dessiner le meilleur manga"
+    ],
+    "correct_index": 1,
+    "difficulty": "Junior Otaku",
+    "category": "One Piece"
+  },
+  {
+    "question": "Quel est le nom du démon-épéiste dans Demon Slayer ?",
+    "options": [
+      "Tanjiro",
+      "Zenitsu",
+      "Inosuke",
+      "Giyu"
+    ],
+    "correct_index": 0,
+    "difficulty": "Junior Otaku",
+    "category": "Demon Slayer"
+  },
+  {
+    "question": "Quel animé met en scène un garçon qui contrôle les titans ?",
+    "options": [
+      "Tokyo Ghoul",
+      "Attack on Titan",
+      "Seraph of the End",
+      "Parasyte"
+    ],
+    "correct_index": 1,
+    "difficulty": "Junior Otaku",
+    "category": "Attack on Titan"
+  },
+  {
+    "question": "Dans Death Note, quel est le vrai nom de Kira ?",
+    "options": [
+      "L",
+      "Near",
+      "Light Yagami",
+      "Mello"
+    ],
+    "correct_index": 2,
+    "difficulty": "Junior Otaku",
+    "category": "Death Note"
+  },
+  {
     "question": "Dans Naruto Shippuden, quel est le vrai nom de l'Akatsuki ?",
     "options": [
       "Organisation Akatsuki",
@@ -774,6 +831,54 @@ _ALL_QUESTIONS = [
     "difficulty": "Senior Otaku"
   },
   {
+    "question": "Dans Naruto, quel Sharingan évolue en Rinnegan ?",
+    "options": [
+      "Sharingan de Sasuke",
+      "Sharingan d'Itachi",
+      "Sharingan de Madara",
+      "Sharingan de Kakashi"
+    ],
+    "correct_index": 2,
+    "difficulty": "Senior Otaku",
+    "category": "Naruto"
+  },
+  {
+    "question": "Qui est le capitaine de la 5e division dans Bleach ?",
+    "options": [
+      "Shinji Hirako",
+      "Sosuke Aizen",
+      "Byakuya Kuchiki",
+      "Toshiro Hitsugaya"
+    ],
+    "correct_index": 1,
+    "difficulty": "Senior Otaku",
+    "category": "Bleach"
+  },
+  {
+    "question": "Dans Fullmetal Alchemist, quel est le nom du frère d'Edward ?",
+    "options": [
+      "Roy Mustang",
+      "Alphonse Elric",
+      "Van Hohenheim",
+      "Scar"
+    ],
+    "correct_index": 1,
+    "difficulty": "Senior Otaku",
+    "category": "Fullmetal Alchemist"
+  },
+  {
+    "question": "Quel animé de studio Ghibli met en scène une fille qui travaille chez sa tante sorcière ?",
+    "options": [
+      "Le Voyage de Chihiro",
+      "Kiki la Petite Sorcière",
+      "Mon Voisin Totoro",
+      "Le Château Ambulant"
+    ],
+    "correct_index": 1,
+    "difficulty": "Senior Otaku",
+    "category": "Ghibli"
+  },
+  {
     "question": "Dans Naruto, quel est le nom du jutsu interdit de la mort de Naruto ?",
     "options": [
       "Rasengan",
@@ -1074,6 +1179,54 @@ _ALL_QUESTIONS = [
     "difficulty": "Master Otaku"
   },
   {
+    "question": "Dans Hunter x Hunter, quel type de Nen est spécialisé dans la manipulation ?",
+    "options": [
+      "Emission",
+      "Manipulation",
+      "Matérialisation",
+      "Transformation"
+    ],
+    "correct_index": 1,
+    "difficulty": "Master Otaku",
+    "category": "Hunter x Hunter"
+  },
+  {
+    "question": "Quel est le nom du personnage principal de Cowboy Bebop ?",
+    "options": [
+      "Jet Black",
+      "Spike Spiegel",
+      "Vicious",
+      "Faye Valentine"
+    ],
+    "correct_index": 1,
+    "difficulty": "Master Otaku",
+    "category": "Cowboy Bebop"
+  },
+  {
+    "question": "Dans Evangelion, quel est le numéro de l'EVA de Shinji ?",
+    "options": [
+      "EVA-00",
+      "EVA-01",
+      "EVA-02",
+      "EVA-03"
+    ],
+    "correct_index": 1,
+    "difficulty": "Master Otaku",
+    "category": "Evangelion"
+  },
+  {
+    "question": "Quel est le véritable nom du héros dans One Punch Man ?",
+    "options": [
+      "Genos",
+      "Saitama",
+      "King",
+      "Mumen Rider"
+    ],
+    "correct_index": 1,
+    "difficulty": "Master Otaku",
+    "category": "One Punch Man"
+  },
+  {
     "question": "Quel est le nom du vrai ennemi de Madara ?",
     "options": [
       "Kaguya Otsutsuki",
@@ -1254,150 +1407,6 @@ _ALL_QUESTIONS = [
     "difficulty": "Otaku Legendaire"
   },
   {
-    "question": "Quel est le vrai nom de Goku ?",
-    "options": [
-      "Kakarot",
-      "Bardock",
-      "Raditz",
-      "Kakarotto"
-    ],
-    "correct_index": 0,
-    "difficulty": "Junior Otaku",
-    "category": "Dragon Ball"
-  },
-  {
-    "question": "Dans One Piece, quel est le rêve de Luffy ?",
-    "options": [
-      "Devenir Hokage",
-      "Trouver le One Piece et devenir Roi des Pirates",
-      "Devenir l'épéiste le plus fort",
-      "Dessiner le meilleur manga"
-    ],
-    "correct_index": 1,
-    "difficulty": "Junior Otaku",
-    "category": "One Piece"
-  },
-  {
-    "question": "Quel est le nom du démon-épéiste dans Demon Slayer ?",
-    "options": [
-      "Tanjiro",
-      "Zenitsu",
-      "Inosuke",
-      "Giyu"
-    ],
-    "correct_index": 0,
-    "difficulty": "Junior Otaku",
-    "category": "Demon Slayer"
-  },
-  {
-    "question": "Dans Naruto, quel Sharingan évolue en Rinnegan ?",
-    "options": [
-      "Sharingan de Sasuke",
-      "Sharingan d'Itachi",
-      "Sharingan de Madara",
-      "Sharingan de Kakashi"
-    ],
-    "correct_index": 2,
-    "difficulty": "Senior Otaku",
-    "category": "Naruto"
-  },
-  {
-    "question": "Quel animé met en scène un garçon qui contrôle les titans ?",
-    "options": [
-      "Tokyo Ghoul",
-      "Attack on Titan",
-      "Seraph of the End",
-      "Parasyte"
-    ],
-    "correct_index": 1,
-    "difficulty": "Junior Otaku",
-    "category": "Attack on Titan"
-  },
-  {
-    "question": "Dans Death Note, quel est le vrai nom de Kira ?",
-    "options": [
-      "L",
-      "Near",
-      "Light Yagami",
-      "Mello"
-    ],
-    "correct_index": 2,
-    "difficulty": "Junior Otaku",
-    "category": "Death Note"
-  },
-  {
-    "question": "Qui est le capitaine de la 5e division dans Bleach ?",
-    "options": [
-      "Shinji Hirako",
-      "Sosuke Aizen",
-      "Byakuya Kuchiki",
-      "Toshiro Hitsugaya"
-    ],
-    "correct_index": 1,
-    "difficulty": "Senior Otaku",
-    "category": "Bleach"
-  },
-  {
-    "question": "Dans Fullmetal Alchemist, quel est le nom du frère d'Edward ?",
-    "options": [
-      "Roy Mustang",
-      "Alphonse Elric",
-      "Van Hohenheim",
-      "Scar"
-    ],
-    "correct_index": 1,
-    "difficulty": "Senior Otaku",
-    "category": "Fullmetal Alchemist"
-  },
-  {
-    "question": "Quel animé de studio Ghibli met en scène une fille qui travaille chez sa tante sorcière ?",
-    "options": [
-      "Le Voyage de Chihiro",
-      "Kiki la Petite Sorcière",
-      "Mon Voisin Totoro",
-      "Le Château Ambulant"
-    ],
-    "correct_index": 1,
-    "difficulty": "Senior Otaku",
-    "category": "Ghibli"
-  },
-  {
-    "question": "Dans Hunter x Hunter, quel type de Nen est spécialisé dans la manipulation ?",
-    "options": [
-      "Emission",
-      "Manipulation",
-      "Matérialisation",
-      "Transformation"
-    ],
-    "correct_index": 1,
-    "difficulty": "Master Otaku",
-    "category": "Hunter x Hunter"
-  },
-  {
-    "question": "Quel est le nom du personnage principal de Cowboy Bebop ?",
-    "options": [
-      "Jet Black",
-      "Spike Spiegel",
-      "Vicious",
-      "Faye Valentine"
-    ],
-    "correct_index": 1,
-    "difficulty": "Master Otaku",
-    "category": "Cowboy Bebop"
-  },
-  {
-    "question": "Dans Evangelion, quel est le numéro de l'EVA de Shinji ?",
-    "options": [
-      "EVA-00",
-      "EVA-01",
-      "EVA-02",
-      "EVA-03"
-    ],
-    "correct_index": 1,
-    "difficulty": "Master Otaku",
-    "category": "Evangelion"
-  },
-  {
     "question": "Quelle technique utilise le Hachimon Tonko no Jin ?",
     "options": [
       "Rasengan",
@@ -1421,18 +1430,6 @@ _ALL_QUESTIONS = [
     "difficulty": "Otaku Legendaire",
     "category": "JoJo"
   },
-  {
-    "question": "Quel est le véritable nom du héros dans One Punch Man ?",
-    "options": [
-      "Genos",
-      "Saitama",
-      "King",
-      "Mumen Rider"
-    ],
-    "correct_index": 1,
-    "difficulty": "Master Otaku",
-    "category": "One Punch Man"
-  }
 ]
 DIFFICULTY_POINTS = {
     "Junior Otaku": 5,
@@ -1442,45 +1439,72 @@ DIFFICULTY_POINTS = {
 }
 
 LEVEL_THRESHOLDS = [
-    (90, "legendary"),
-    (75, "master"),
-    (55, "senior"),
-    (0, "junior"),
+    (90, "SS"),
+    (75, "S"),
+    (55, "A"),
+    (0, "B"),
 ]
 
 
-def _generate_questions_data(theme: Optional[str] = None):
-    pool = _ALL_QUESTIONS
-    if theme:
-        pool = [q for q in pool if q.get("category", "").lower() == theme.lower()]
-        if not pool:
-            pool = _ALL_QUESTIONS
-    count = min(10, len(pool))
-    questions = random.sample(pool, count) if count > 0 else []
-    return questions
+def _get_level_index(level: str) -> int:
+    try:
+        return LEVEL_ORDER.index(level)
+    except ValueError:
+        return -1
 
 
-def _score_to_level(pct: int) -> str:
-    for threshold, level in LEVEL_THRESHOLDS:
+def _is_level_unlocked(user: User, target: str) -> bool:
+    target_idx = _get_level_index(target)
+    if target_idx == 0:
+        return True
+    unlocked_idx = _get_level_index(user.highest_unlocked)
+    return target_idx <= unlocked_idx
+
+
+def _generate_questions_data(difficulty: str):
+    pool = [q for q in _ALL_QUESTIONS if q.get("difficulty") == difficulty]
+    if not pool:
+        return []
+    count = min(20, len(pool))
+    return random.sample(pool, count)
+
+
+def _score_to_grade(pct: int) -> str:
+    for threshold, grade in LEVEL_THRESHOLDS:
         if pct >= threshold:
-            return level
-    return "junior"
+            return grade
+    return "B"
 
 
-# --- Routes ---
+@router.get("/progress", response_model=ProgressOut)
+def get_progress(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return ProgressOut(
+        highest_unlocked=user.highest_unlocked,
+        completed_levels=json.loads(user.completed_levels or "[]"),
+    )
+
 
 @router.post("/start", response_model=StartResponse)
 def start_quiz(
-    theme: Optional[str] = None,
+    difficulty: str = "Junior Otaku",
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     try:
-        questions_data = _generate_questions_data(theme)
-        if not questions_data:
-            raise HTTPException(status_code=500, detail="Aucune question disponible")
+        if difficulty not in LEVEL_ORDER:
+            raise HTTPException(status_code=400, detail="Niveau invalide")
 
-        session = ExamSession(user_id=user.id, status="in_progress")
+        if not _is_level_unlocked(user, difficulty):
+            raise HTTPException(status_code=403, detail="Ce niveau n'est pas encore débloqué. Termine d'abord le niveau précédent.")
+
+        questions_data = _generate_questions_data(difficulty)
+        if not questions_data:
+            raise HTTPException(status_code=500, detail=f"Aucune question disponible pour le niveau {difficulty}")
+
+        session = ExamSession(user_id=user.id, status="in_progress", level=difficulty)
         db.add(session)
         db.flush()
 
@@ -1500,6 +1524,7 @@ def start_quiz(
 
         return StartResponse(
             session_id=session.id,
+            level=difficulty,
             questions=[
                 QuestionOut(
                     id=q.id,
@@ -1538,6 +1563,7 @@ def get_current_quiz(
 
     return StartResponse(
         session_id=session.id,
+        level=session.level or "",
         questions=[
             QuestionOut(
                 id=q.id,
@@ -1601,17 +1627,34 @@ def submit_quiz(
         })
 
     score_pct = round((earned_points / total_points) * 100) if total_points > 0 else 0
-    level = _score_to_level(score_pct)
+    grade = _score_to_grade(score_pct)
     correct_count = sum(1 for d in details if d["is_correct"])
 
     session.status = "completed"
     session.completed_at = None
     session.score = score_pct
-    session.level = level
+    session.level = grade
+
+    # Débloquer le niveau suivant si ≥ 55% (grade A ou mieux)
+    level_name = session.level or ""
+    if score_pct >= 55 and level_name:
+        completed = json.loads(user.completed_levels or "[]")
+        if level_name not in completed:
+            completed.append(level_name)
+            user.completed_levels = json.dumps(completed)
+
+        current_idx = _get_level_index(user.highest_unlocked)
+        completed_idx = _get_level_index(level_name)
+        if completed_idx >= current_idx:
+            next_idx = completed_idx + 1
+            if next_idx < len(LEVEL_ORDER):
+                user.highest_unlocked = LEVEL_ORDER[next_idx]
+            else:
+                user.highest_unlocked = level_name
 
     return SubmitResponse(
         score=score_pct,
-        level=level,
+        level=grade,
         total=len(questions),
         correct=correct_count,
         details=details,
