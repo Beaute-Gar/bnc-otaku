@@ -78,16 +78,6 @@ app.include_router(certificate.router)
 app.include_router(payment.router)
 
 
-@app.get("/")
-async def root():
-    return {
-        "service": "BNC-Otaku API",
-        "version": "1.0.0",
-        "status": "online",
-        "docs": "/docs",
-    }
-
-
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
