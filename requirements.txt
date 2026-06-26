@@ -6,8 +6,8 @@ pydantic-settings==2.5.2
 python-dotenv==1.0.1
 
 # Base de Données
-sqlalchemy[asyncio]==2.0.35
-aiomysql==0.2.0
+sqlalchemy==2.0.35
+pymysql==1.2.0
 cryptography==43.0.1
 
 # Sécurité

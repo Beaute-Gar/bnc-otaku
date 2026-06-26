@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.user import User
@@ -96,16 +96,16 @@ def _score_to_level(pct: int) -> str:
 # --- Routes ---
 
 @router.post("/start", response_model=StartResponse)
-async def start_quiz(
+def start_quiz(
     theme: Optional[str] = None,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
     questions_data = _generate_questions_data(theme)
 
     session = ExamSession(user_id=user.id, status="in_progress")
     db.add(session)
-    await db.flush()
+    db.flush()
 
     created = []
     for q in questions_data:
@@ -119,7 +119,7 @@ async def start_quiz(
         )
         db.add(qq)
         created.append(qq)
-    await db.flush()
+    db.flush()
 
     return StartResponse(
         session_id=session.id,
@@ -137,26 +137,22 @@ async def start_quiz(
 
 
 @router.get("/current/{session_id}", response_model=StartResponse)
-async def get_current_quiz(
+def get_current_quiz(
     session_id: int,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ExamSession).where(
-            ExamSession.id == session_id,
-            ExamSession.user_id == user.id,
-            ExamSession.status == "in_progress",
-        )
-    )
-    session = result.scalar_one_or_none()
+    session = db.query(ExamSession).filter(
+        ExamSession.id == session_id,
+        ExamSession.user_id == user.id,
+        ExamSession.status == "in_progress",
+    ).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session introuvable ou déjà terminée")
 
-    result = await db.execute(
-        select(QuizQuestion).where(QuizQuestion.exam_session_id == session_id)
-    )
-    questions = result.scalars().all()
+    questions = db.query(QuizQuestion).filter(
+        QuizQuestion.exam_session_id == session_id
+    ).all()
 
     return StartResponse(
         session_id=session.id,
@@ -174,26 +170,22 @@ async def get_current_quiz(
 
 
 @router.post("/submit", response_model=SubmitResponse)
-async def submit_quiz(
+def submit_quiz(
     req: SubmitRequest,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ExamSession).where(
-            ExamSession.id == req.session_id,
-            ExamSession.user_id == user.id,
-            ExamSession.status == "in_progress",
-        )
-    )
-    session = result.scalar_one_or_none()
+    session = db.query(ExamSession).filter(
+        ExamSession.id == req.session_id,
+        ExamSession.user_id == user.id,
+        ExamSession.status == "in_progress",
+    ).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session introuvable ou déjà terminée")
 
-    result = await db.execute(
-        select(QuizQuestion).where(QuizQuestion.exam_session_id == req.session_id)
-    )
-    questions = result.scalars().all()
+    questions = db.query(QuizQuestion).filter(
+        QuizQuestion.exam_session_id == req.session_id
+    ).all()
 
     if len(questions) != len(req.answers):
         raise HTTPException(status_code=400, detail="Nombre de réponses incorrect")
@@ -245,7 +237,7 @@ async def submit_quiz(
 
 
 @router.post("/congratulate")
-async def congratulate(
+def congratulate(
     req: CongratulateRequest,
     user: User = Depends(get_current_user),
 ):

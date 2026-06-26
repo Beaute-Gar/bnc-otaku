@@ -2,7 +2,7 @@ from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -34,9 +34,9 @@ def verify_csrf_token(token: str, max_age: int = 3600) -> bool:
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-async def get_current_user(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> User:
     if not credentials:
         raise HTTPException(status_code=401, detail="Authentification requise")
@@ -53,8 +53,7 @@ async def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Token invalide ou expiré")
 
-    result = await db.execute(select(User).where(User.username == username))
-    user = result.scalar_one_or_none()
+    user = db.query(User).filter(User.username == username).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Utilisateur introuvable ou désactivé")
     return user

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from datetime import datetime
 
 from backend.database import get_db
@@ -43,26 +43,23 @@ def _generate_cert_number() -> str:
 
 
 @router.post("/generate", response_model=CertifyResponse)
-async def generate_certificate(
+def generate_certificate(
     req: CertifyRequest,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ExamSession).where(
-            ExamSession.id == req.exam_session_id,
-            ExamSession.user_id == user.id,
-            ExamSession.status == "completed",
-        )
-    )
-    session = result.scalar_one_or_none()
+    session = db.query(ExamSession).filter(
+        ExamSession.id == req.exam_session_id,
+        ExamSession.user_id == user.id,
+        ExamSession.status == "completed",
+    ).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session introuvable ou non terminée")
 
-    result = await db.execute(
-        select(Certificate).where(Certificate.exam_session_id == req.exam_session_id)
-    )
-    if result.scalar_one_or_none():
+    existing = db.query(Certificate).filter(
+        Certificate.exam_session_id == req.exam_session_id
+    ).first()
+    if existing:
         raise HTTPException(status_code=400, detail="Certificat déjà généré pour cette session")
 
     cert_number = _generate_cert_number()
@@ -76,8 +73,8 @@ async def generate_certificate(
         score=session.score,
     )
     db.add(cert)
-    await db.flush()
-    await db.refresh(cert)
+    db.flush()
+    db.refresh(cert)
 
     return CertifyResponse(
         cert_number=cert.cert_number,
@@ -89,11 +86,10 @@ async def generate_certificate(
 
 
 @router.get("/verify/{cert_number}", response_model=CertificateVerifyResponse)
-async def verify_certificate(cert_number: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Certificate).where(Certificate.cert_number == cert_number)
-    )
-    cert = result.scalar_one_or_none()
+def verify_certificate(cert_number: str, db: Session = Depends(get_db)):
+    cert = db.query(Certificate).filter(
+        Certificate.cert_number == cert_number
+    ).first()
     if not cert:
         return CertificateVerifyResponse(valid=False, cert_number=cert_number)
 

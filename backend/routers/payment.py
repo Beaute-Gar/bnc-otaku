@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from datetime import datetime
 
 from backend.database import get_db
@@ -56,11 +56,8 @@ class ProductResponse(BaseModel):
 # --- Routes ---
 
 @router.get("/products", response_model=List[ProductResponse])
-async def list_products(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(PremiumProduct).where(PremiumProduct.is_active == 1)
-    )
-    products = result.scalars().all()
+def list_products(db: Session = Depends(get_db)):
+    products = db.query(PremiumProduct).filter(PremiumProduct.is_active == 1).all()
     return [
         ProductResponse(
             slug=p.slug,
@@ -75,19 +72,16 @@ async def list_products(db: AsyncSession = Depends(get_db)):
 
 @router.post("/initiate", response_model=InitiateResponse)
 @limiter.limit("5/minute")
-async def initiate_payment(
+def initiate_payment(
     request: Request,
     req: InitiateRequest,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(PremiumProduct).where(
-            PremiumProduct.slug == req.produit_slug,
-            PremiumProduct.is_active == 1,
-        )
-    )
-    product = result.scalar_one_or_none()
+    product = db.query(PremiumProduct).filter(
+        PremiumProduct.slug == req.produit_slug,
+        PremiumProduct.is_active == 1,
+    ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produit introuvable")
 
@@ -103,11 +97,11 @@ async def initiate_payment(
         statut="pending",
     )
     db.add(payment)
-    await db.flush()
+    db.flush()
 
     if cinetpay.is_configured():
         try:
-            result_cinetpay = await cinetpay.initiate_payment(
+            result_cinetpay = cinetpay.initiate_payment(
                 montant_fcfa=product.prix_fcfa,
                 operateur=req.operateur,
                 phone=req.phone,
@@ -139,12 +133,11 @@ async def initiate_payment(
 
 
 @router.post("/webhook")
-async def payment_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+async def payment_webhook(request: Request, db: Session = Depends(get_db)):
     body = await request.json()
     ref = body.get("transaction_id") or body.get("reference") or ""
 
-    result = await db.execute(select(Payment).where(Payment.reference == ref))
-    payment = result.scalar_one_or_none()
+    payment = db.query(Payment).filter(Payment.reference == ref).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Transaction introuvable")
 
@@ -163,18 +156,15 @@ async def payment_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/status/{reference}", response_model=PaymentStatusResponse)
-async def payment_status(
+def payment_status(
     reference: str,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Payment).where(
-            Payment.reference == reference,
-            Payment.user_id == user.id,
-        )
-    )
-    payment = result.scalar_one_or_none()
+    payment = db.query(Payment).filter(
+        Payment.reference == reference,
+        Payment.user_id == user.id,
+    ).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Transaction introuvable")
 
@@ -189,17 +179,13 @@ async def payment_status(
 
 
 @router.get("/history")
-async def payment_history(
+def payment_history(
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Payment)
-        .where(Payment.user_id == user.id)
-        .order_by(Payment.created_at.desc())
-        .limit(50)
-    )
-    payments = result.scalars().all()
+    payments = db.query(Payment).filter(
+        Payment.user_id == user.id
+    ).order_by(Payment.created_at.desc()).limit(50).all()
     return [
         {
             "reference": p.reference,
@@ -215,29 +201,26 @@ async def payment_history(
 
 
 @router.get("/admin/history")
-async def admin_payment_history(
+def admin_payment_history(
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
     if user.role != "admin":
         raise HTTPException(status_code=403, detail="Accès réservé à l'administration")
 
-    result = await db.execute(
-        select(Payment).order_by(Payment.created_at.desc()).limit(100)
-    )
-    payments = result.scalars().all()
+    payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(100).all()
 
-    total_row = await db.execute(
-        select(
-            func.sum(Payment.montant_fcfa).filter(Payment.statut == "success"),
-            func.count(Payment.id).filter(Payment.statut == "success"),
-        )
-    )
-    total_montant, total_count = total_row.one()
+    from sqlalchemy import func as sa_func
+    total_row = db.query(
+        sa_func.coalesce(sa_func.sum(Payment.montant_fcfa).filter(Payment.statut == "success"), 0),
+        sa_func.coalesce(sa_func.count(Payment.id).filter(Payment.statut == "success"), 0),
+    ).first()
+    total_montant = float(total_row[0])
+    total_count = total_row[1]
 
     return {
-        "total_fcfa": float(total_montant or 0),
-        "total_transactions": total_count or 0,
+        "total_fcfa": total_montant,
+        "total_transactions": total_count,
         "payments": [
             {
                 "reference": p.reference,

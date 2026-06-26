@@ -4,7 +4,7 @@ import json
 import secrets
 from datetime import datetime
 from typing import Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from backend.config import settings
@@ -45,12 +45,12 @@ DEFAULT_PRODUCTS = [
 ]
 
 
-async def seed_products(db: AsyncSession):
+def seed_products(db: Session):
     for prod in DEFAULT_PRODUCTS:
-        result = await db.execute(select(PremiumProduct).where(PremiumProduct.slug == prod["slug"]))
-        if not result.scalar_one_or_none():
+        existing = db.query(PremiumProduct).filter(PremiumProduct.slug == prod["slug"]).first()
+        if not existing:
             db.add(PremiumProduct(**prod))
-    await db.flush()
+    db.flush()
 
 
 def generate_reference() -> str:
@@ -75,7 +75,7 @@ class CinetPayService:
         self.return_url = f"{settings.frontend_url}/premium.html?status=success"
         self.cancel_url = f"{settings.frontend_url}/premium.html?status=cancel"
 
-    async def initiate_payment(
+    def initiate_payment(
         self,
         montant_fcfa: int,
         operateur: str,
@@ -84,7 +84,7 @@ class CinetPayService:
         description: str,
         user_id: Optional[int] = None,
     ) -> Dict[str, Any]:
-        import httpx
+        import requests
 
         payload = {
             "apikey": self.api_key,
@@ -101,9 +101,8 @@ class CinetPayService:
             "channels": operateur.lower(),
         }
 
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(f"{self.BASE_URL}/payment", json=payload)
-            data = resp.json()
+        resp = requests.post(f"{self.BASE_URL}/payment", json=payload, timeout=15)
+        data = resp.json()
 
         return data
 
@@ -127,10 +126,10 @@ class NotchPayService:
     def __init__(self):
         self.public_key = settings.notchpay_public_key or ""
 
-    async def initiate_payment(
+    def initiate_payment(
         self, montant_fcfa: int, operateur: str, reference: str, description: str
     ) -> Dict[str, Any]:
-        import httpx
+        import requests
 
         headers = {
             "Authorization": f"Bearer {self.public_key}",
@@ -144,9 +143,8 @@ class NotchPayService:
             "callback_url": f"{settings.frontend_url}/api/payment/webhook",
         }
 
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(f"{self.BASE_URL}/charges", json=payload, headers=headers)
-            data = resp.json()
+        resp = requests.post(f"{self.BASE_URL}/charges", json=payload, headers=headers, timeout=15)
+        data = resp.json()
 
         return data
 

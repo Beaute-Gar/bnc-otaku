@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.config import settings
 from backend.database import get_db
@@ -68,12 +68,12 @@ async def admin_login(request: Request, req: LoginRequest):
 
 
 @router.post("/register", response_model=dict)
-async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
     """Inscription d'un nouveau candidat."""
-    result = await db.execute(select(User).where(
+    existing = db.query(User).filter(
         (User.username == req.username) | (User.email == req.email)
-    ))
-    if result.scalar_one_or_none():
+    ).first()
+    if existing:
         raise HTTPException(status_code=400, detail="Nom d'utilisateur ou email déjà utilisé")
 
     user = User(
@@ -84,8 +84,8 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
         role="candidate",
     )
     db.add(user)
-    await db.flush()
-    await db.refresh(user)
+    db.flush()
+    db.refresh(user)
 
     return {
         "message": "Compte créé avec succès",
@@ -101,10 +101,9 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login/client", response_model=TokenResponse)
 @limiter.limit("10/minute")
-async def client_login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
+def client_login(request: Request, req: LoginRequest, db: Session = Depends(get_db)):
     """Connexion candidat (utilisateurs enregistrés)."""
-    result = await db.execute(select(User).where(User.username == req.username))
-    user = result.scalar_one_or_none()
+    user = db.query(User).filter(User.username == req.username).first()
     if not user or not pwd_context.verify(req.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Identifiants invalides")
     if not user.is_active:
