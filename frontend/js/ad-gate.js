@@ -11,23 +11,13 @@
 let _adGateResolve = null;
 
 /**
- * Déclenche la publicité (Adsterra / Monetag / etc.)
- * Remplace cette fonction par ton script de régie publicitaire.
+ * Déclenche la publicité Adsterra (Popunder)
  */
 function triggerAd() {
-    // --- EXEMPLE Adsterra Pop-Under ---
-    // Colle ici le code JavaScript fourni par Adsterra.
-    // Exemple :
-    // var adsterra = document.createElement('script');
-    // adsterra.src = '//pl.exemple.com/your-ad-zone-id/invoke.js';
-    // document.head.appendChild(adsterra);
-    //
-    // --- EXEMPLE Adsterra Interstitial ---
-    // if (typeof window.__adsterra_async !== 'undefined') {
-    //     window.__adsterra_async.showInterstitial();
-    // }
-    
-    console.log('[AdGate] Publicité déclenchée (placeholder)');
+    var s = document.createElement('script');
+    s.src = 'https://pl29903942.effectivecpmnetwork.com/46/d3/ce/46d3ce455b49126e94fb4c7762125af8.js';
+    s.async = true;
+    document.head.appendChild(s);
 }
 
 /**
