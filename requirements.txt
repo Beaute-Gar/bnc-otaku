@@ -8,6 +8,7 @@ python-dotenv==1.0.1
 # Base de Données
 sqlalchemy==2.0.35
 pymysql==1.2.0
+psycopg2-binary==2.9.9
 cryptography==43.0.1
 
 # Sécurité

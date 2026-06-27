@@ -13,21 +13,30 @@ class Settings(BaseSettings):
     # --- Gemini ---
     gemini_api_key: str = ""
 
-    # --- MySQL ---
+    # --- MySQL (legacy, prioritaire si DATABASE_URL non défini) ---
     db_host: str = "localhost"
     db_port: int = 3306
     db_user: str = "bnc_otaku_user"
     db_password: str = ""
     db_name: str = "bnc_otaku_db"
-    db_ssl_ca: str = ""  # Chemin vers le certificat CA (Aiven/Render)
-    db_ssl_mode: str = "DISABLED"  # "DISABLED" ou "REQUIRED"
+    db_ssl_ca: str = ""
+    db_ssl_mode: str = "DISABLED"
+
+    # --- PostgreSQL / DATABASE_URL (Render fournit DATABASE_URL auto) ---
+    database_url: str = ""
 
     @property
-    def database_url(self) -> str:
+    def resolved_database_url(self) -> str:
+        if self.database_url:
+            return self.database_url
         url = f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
         if self.db_ssl_mode == "REQUIRED" and self.db_ssl_ca:
             url += f"&ssl_ca={self.db_ssl_ca.replace(chr(92), '/')}"
         return url
+
+    @property
+    def is_postgres(self) -> bool:
+        return self.database_url.startswith("postgresql") if self.database_url else False
 
     # --- API Security ---
     api_secret_key: str = "change-me-pls"
@@ -53,11 +62,11 @@ class Settings(BaseSettings):
     admin_password_hash: str = ""
     admin_email: str = "admin@bnc-otaku.cm"
 
-    # --- CinetPay (Mobile Money) ---
+    # --- CinetPay ---
     cinetpay_api_key: str = ""
     cinetpay_site_id: str = ""
 
-    # --- NotchPay (alternative) ---
+    # --- NotchPay ---
     notchpay_public_key: str = ""
 
     # --- Frontend ---

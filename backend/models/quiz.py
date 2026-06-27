@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, DateTime, ForeignKey, func
-from sqlalchemy.dialects.mysql import JSON
+from sqlalchemy import Column, Integer, String, Text, Enum, DateTime, ForeignKey, func, JSON
 from backend.database import Base
 
 
