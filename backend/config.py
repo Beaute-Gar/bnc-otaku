@@ -30,8 +30,13 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
         url = f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
-        if self.db_ssl_mode == "REQUIRED" and self.db_ssl_ca:
-            url += f"&ssl_ca={self.db_ssl_ca.replace(chr(92), '/')}"
+        ca_path = self.db_ssl_ca.replace(chr(92), '/')
+        if self.db_ssl_mode == "REQUIRED" and ca_path:
+            import os
+            if os.path.isfile(ca_path):
+                url += f"&ssl_ca={ca_path}"
+            else:
+                url += "&ssl_mode=DISABLED"
         return url
 
     @property
