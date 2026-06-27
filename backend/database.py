@@ -34,10 +34,14 @@ import backend.models.quiz  # noqa
 
 
 def init_db():
+    if settings.is_sqlite:
+        import os
+        db_path = settings.resolved_database_url.replace("sqlite:///", "")
+        os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
     Base.metadata.create_all(engine)
     if settings.is_postgres:
         _run_pg_migrations()
-    else:
+    elif not settings.is_sqlite:
         _run_mysql_migrations()
 
 

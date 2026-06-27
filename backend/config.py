@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+import os
 
 
 class Settings(BaseSettings):
@@ -13,32 +14,26 @@ class Settings(BaseSettings):
     # --- Gemini ---
     gemini_api_key: str = ""
 
-    # --- MySQL (legacy, prioritaire si DATABASE_URL non défini) ---
-    db_host: str = "localhost"
-    db_port: int = 3306
-    db_user: str = "bnc_otaku_user"
-    db_password: str = ""
-    db_name: str = "bnc_otaku_db"
-    db_ssl_ca: str = ""
-    db_ssl_mode: str = "DISABLED"
-
-    # --- PostgreSQL / DATABASE_URL (Render fournit DATABASE_URL auto) ---
+    # --- Base de données ---
     database_url: str = ""
 
     @property
     def resolved_database_url(self) -> str:
         if self.database_url:
             return self.database_url
-        url = f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
-        import os
-        ca_path = self.db_ssl_ca.replace(chr(92), '/')
-        if self.db_ssl_mode == "REQUIRED" and ca_path and os.path.isfile(ca_path):
-            url += f"&ssl_ca={ca_path}"
-        return url
+        is_render = os.environ.get("RENDER") == "1"
+        if is_render:
+            return "sqlite:///data/bnc_otaku.db"
+        return "sqlite:///bnc_otaku.db"
 
     @property
     def is_postgres(self) -> bool:
         return self.database_url.startswith("postgresql") if self.database_url else False
+
+    @property
+    def is_sqlite(self) -> bool:
+        url = self.resolved_database_url
+        return url.startswith("sqlite") if url else False
 
     # --- API Security ---
     api_secret_key: str = "change-me-pls"
